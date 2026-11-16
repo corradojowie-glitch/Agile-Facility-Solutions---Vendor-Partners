@@ -1,0 +1,2281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Agile Facility Solutions - Vendor Partners</title>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Google Fonts: Inter & Plus Jakarta Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Font Awesome 6 -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  
+  <!-- Leaflet CSS & JS for Interactive Mapping -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            display: ['Plus Jakarta Sans', 'sans-serif'],
+          },
+          colors: {
+            navy: {
+              800: '#13327A',
+              900: '#0D2561',
+              950: '#081842',
+            },
+            brand: {
+              navy: '#0D2561',
+              cyan: '#0095D9',
+              gold: '#FBC738',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      background-color: #F4F7FB;
+      color: #0D2561;
+      overflow-x: hidden;
+    }
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #EBF1F8;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #94a3b8;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #0095D9;
+    }
+    /* Google Sites-style subtle tab indicator */
+    .nav-tab {
+      position: relative;
+      transition: all 0.2s ease;
+    }
+    .nav-tab.active::after {
+      content: '';
+      position: absolute;
+      bottom: -1px;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background-color: #FBC738;
+      border-radius: 3px 3px 0 0;
+    }
+    /* Leaflet Custom Pin Styles */
+    .custom-pin {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      border: 3px solid #ffffff;
+      box-shadow: 0 4px 10px rgba(13, 37, 97, 0.35);
+      font-weight: bold;
+      transition: transform 0.2s ease;
+    }
+    .custom-pin:hover {
+      transform: scale(1.15);
+      z-index: 1000 !important;
+    }
+    #vendorMap {
+      height: 540px;
+      width: 100%;
+      z-index: 10;
+      border-radius: 0.75rem;
+      background-color: #EBF1F8;
+    }
+    @media (max-width: 768px) {
+      #vendorMap {
+        height: 400px;
+      }
+    }
+    /* Smooth animations */
+    .fade-in {
+      animation: fadeIn 0.25s ease-out forwards;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+  <!-- TOP GOOGLE SITES-STYLE NAVIGATION HEADER -->
+  <header class="bg-[#0D2561] text-white shadow-lg sticky top-0 z-40 border-b border-[#0095D9]/30">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <!-- Top Row: Clean Site Identity (Icon Removed) + Jowie Credit + Data Backup Tools -->
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between py-3.5 gap-3">
+        <div>
+          <div class="flex flex-wrap items-center gap-2.5">
+            <h1 class="font-display font-extrabold text-lg sm:text-xl tracking-tight text-white">
+              Agile Facility Solutions - Vendor Partners
+            </h1>
+            <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#0095D9]/20 text-[#7dd3fc] border border-[#0095D9]/40">
+              <span class="w-1.5 h-1.5 rounded-full bg-[#FBC738]"></span> Team Hub
+            </span>
+          </div>
+          <p class="text-xs sm:text-sm text-slate-200 mt-0.5 flex items-center gap-1.5">
+            <i class="fa-solid fa-user-pen text-[#FBC738] text-xs"></i>
+            <span>Prepared and maintained by <strong class="text-white font-semibold">Jowie Corrado</strong>, Vendor Coordinator</span>
+          </p>
+        </div>
+
+        <!-- Backup / Import / Export Quick Tools -->
+        <div class="flex flex-wrap items-center gap-2">
+          <button onclick="exportDataJSON()" title="Download full JSON backup of all vendors" class="px-3 py-1.5 rounded-lg bg-[#081842] hover:bg-[#13327A] text-slate-100 text-xs font-medium border border-[#0095D9]/30 transition flex items-center gap-1.5">
+            <i class="fa-solid fa-download text-[#0095D9]"></i> Backup JSON
+          </button>
+          <label title="Restore vendors from a JSON backup file" class="cursor-pointer px-3 py-1.5 rounded-lg bg-[#081842] hover:bg-[#13327A] text-slate-100 text-xs font-medium border border-[#0095D9]/30 transition flex items-center gap-1.5">
+            <i class="fa-solid fa-upload text-[#FBC738]"></i> Restore
+            <input type="file" id="importJsonInput" accept=".json" class="hidden" onchange="importDataJSON(event)" />
+          </label>
+          <button onclick="openVendorModal()" class="px-3.5 py-1.5 rounded-lg bg-[#FBC738] hover:bg-[#facc15] text-[#0D2561] font-extrabold text-xs sm:text-sm shadow transition flex items-center gap-1.5">
+            <i class="fa-solid fa-plus"></i> Add Vendor / Lead
+          </button>
+        </div>
+      </div>
+
+      <!-- Bottom Row: 3 Main Google Sites Navigation Pages -->
+      <nav class="flex items-center gap-1 sm:gap-4 border-t border-white/10 pt-1 overflow-x-auto no-scrollbar">
+        <button id="tab-overview" onclick="switchPage('overview')" class="nav-tab active px-3 sm:px-4 py-3 text-sm font-semibold text-white whitespace-nowrap flex items-center gap-2">
+          <i class="fa-solid fa-chart-pie text-[#0095D9]"></i>
+          <span>1. Overview & Command Center</span>
+        </button>
+        <button id="tab-directory" onclick="switchPage('directory')" class="nav-tab px-3 sm:px-4 py-3 text-sm font-medium text-slate-200 hover:text-white whitespace-nowrap flex items-center gap-2">
+          <i class="fa-solid fa-address-book text-[#0095D9]"></i>
+          <span>2. Vendor & Lead Directory</span>
+          <span id="navVendorCount" class="ml-1 px-2 py-0.5 text-xs font-bold rounded-full bg-[#081842] text-[#FBC738] border border-[#0095D9]/30">0</span>
+        </button>
+        <button id="tab-map" onclick="switchPage('map')" class="nav-tab px-3 sm:px-4 py-3 text-sm font-medium text-slate-200 hover:text-white whitespace-nowrap flex items-center gap-2">
+          <i class="fa-solid fa-map-location-dot text-[#0095D9]"></i>
+          <span>3. Coverage Map & Drive-Time Calculator</span>
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <!-- MAIN CONTENT CONTAINER -->
+  <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+
+    <!-- ===================================================================== -->
+    <!-- PAGE 1: OVERVIEW & COMMAND CENTER                                     -->
+    <!-- ===================================================================== -->
+    <section id="page-overview" class="fade-in space-y-6">
+      
+      <!-- Hero Welcome Banner in Jowie's First-Person Voice -->
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+        <div class="bg-gradient-to-r from-[#0D2561] via-[#13327A] to-[#0095D9] p-6 sm:p-8 text-white relative">
+          <div class="max-w-3xl relative z-10">
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#081842]/60 text-[#FBC738] text-xs font-bold mb-3 border border-[#FBC738]/30">
+              <i class="fa-solid fa-hand-sparkles"></i> Welcome from Jowie Corrado
+            </div>
+            <h2 class="font-display text-2xl sm:text-3xl font-extrabold tracking-tight mb-3">
+              Welcome to our Agile Facility Solutions Vendor Hub!
+            </h2>
+            <p class="text-slate-100 text-sm sm:text-base leading-relaxed mb-5">
+              Hey team — I put this tracker and interactive map together so we have one clean, reliable place to manage all of our confirmed active vendor partners and incoming leads. Whenever we get a new client facility request, you can jump straight into our directory to filter by any of our <strong class="text-[#FBC738]">14 core facility services</strong> or <strong class="text-[#FBC738]">all 50 US states</strong>, or use the map calculator to measure exact driving hours from a vendor's HQ to our client's site.
+            </p>
+            <div class="flex flex-wrap gap-3">
+              <button onclick="openVendorModal()" class="px-4 py-2.5 rounded-xl bg-[#FBC738] hover:bg-[#facc15] text-[#0D2561] font-extrabold text-sm shadow-md transition flex items-center gap-2">
+                <i class="fa-solid fa-user-plus"></i> Add New Vendor or Lead
+              </button>
+              <button onclick="switchPage('map')" class="px-4 py-2.5 rounded-xl bg-[#081842]/70 hover:bg-[#081842] text-white font-semibold text-sm border border-white/25 transition flex items-center gap-2">
+                <i class="fa-solid fa-route text-[#FBC738]"></i> Open Client Site Distance Map
+              </button>
+              <button onclick="switchPage('directory')" class="px-4 py-2.5 rounded-xl bg-white/15 hover:bg-white/25 text-white font-semibold text-sm border border-white/25 transition flex items-center gap-2">
+                <i class="fa-solid fa-filter text-[#FBC738]"></i> Filter Full Directory
+              </button>
+            </div>
+          </div>
+          <!-- Decorative Swoop Accents -->
+          <div class="hidden lg:flex items-center justify-center absolute right-10 top-1/2 -translate-y-1/2 opacity-20 pointer-events-none">
+            <i class="fa-solid fa-map-marked-alt text-[150px] text-[#FBC738]"></i>
+          </div>
+        </div>
+
+        <!-- Quick Coordinator Tips Strip -->
+        <div class="bg-[#EBF1F8] px-6 py-3 border-t border-slate-200 flex flex-wrap items-center justify-between gap-2 text-xs text-[#0D2561]">
+          <div class="flex items-center gap-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-[#0095D9]"></span>
+            <span><strong>Pro Tip:</strong> Many partners (like our Tampa, FL team) cover an entire state beyond their HQ city—check the <span class="text-[#0095D9] font-bold">Statewide Coverage</span> tags!</span>
+          </div>
+          <span class="text-slate-500 font-medium">Auto-saves locally in your browser</span>
+        </div>
+      </div>
+
+      <!-- Live KPI Summary Cards -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <!-- Total Network -->
+        <div class="bg-white p-5 rounded-xl border border-slate-200 border-l-4 border-l-[#0D2561] shadow-sm flex items-start justify-between">
+          <div>
+            <p class="text-xs font-bold uppercase tracking-wider text-slate-500">Total Network</p>
+            <h3 id="kpiTotalVendors" class="text-3xl font-display font-extrabold text-[#0D2561] mt-1">0</h3>
+            <p class="text-xs text-slate-500 mt-1.5">Confirmed partners & leads</p>
+          </div>
+          <div class="w-11 h-11 rounded-xl bg-[#0D2561]/10 text-[#0D2561] flex items-center justify-center text-lg">
+            <i class="fa-solid fa-handshake"></i>
+          </div>
+        </div>
+
+        <!-- Active Partners -->
+        <div onclick="filterByStatusFromOverview('Active')" class="cursor-pointer bg-white p-5 rounded-xl border border-slate-200 border-l-4 border-l-[#0095D9] hover:border-[#0095D9] shadow-sm flex items-start justify-between transition">
+          <div>
+            <p class="text-xs font-bold uppercase tracking-wider text-[#0095D9]">Active Vendor Partners</p>
+            <h3 id="kpiActiveVendors" class="text-3xl font-display font-extrabold text-[#0095D9] mt-1">0</h3>
+            <p class="text-xs text-[#0D2561]/80 font-medium mt-1.5 flex items-center gap-1">
+              <span>Ready for dispatch</span> <i class="fa-solid fa-arrow-right text-[10px] text-[#0095D9]"></i>
+            </p>
+          </div>
+          <div class="w-11 h-11 rounded-xl bg-[#0095D9]/15 text-[#0095D9] flex items-center justify-center text-lg">
+            <i class="fa-solid fa-circle-check"></i>
+          </div>
+        </div>
+
+        <!-- Vetting / Leads -->
+        <div onclick="filterByStatusFromOverview('Lead')" class="cursor-pointer bg-white p-5 rounded-xl border border-slate-200 border-l-4 border-l-[#FBC738] hover:border-[#FBC738] shadow-sm flex items-start justify-between transition">
+          <div>
+            <p class="text-xs font-bold uppercase tracking-wider text-amber-700">Leads / In Vetting</p>
+            <h3 id="kpiLeadVendors" class="text-3xl font-display font-extrabold text-amber-600 mt-1">0</h3>
+            <p class="text-xs text-[#0D2561]/80 font-medium mt-1.5 flex items-center gap-1">
+              <span>Click to review leads</span> <i class="fa-solid fa-arrow-right text-[10px] text-amber-600"></i>
+            </p>
+          </div>
+          <div class="w-11 h-11 rounded-xl bg-[#FBC738]/25 text-[#0D2561] flex items-center justify-center text-lg">
+            <i class="fa-solid fa-hourglass-half"></i>
+          </div>
+        </div>
+
+        <!-- US States Covered -->
+        <div onclick="switchPage('map')" class="cursor-pointer bg-white p-5 rounded-xl border border-slate-200 border-l-4 border-l-[#0D2561] hover:border-[#0095D9] shadow-sm flex items-start justify-between transition">
+          <div>
+            <p class="text-xs font-bold uppercase tracking-wider text-[#0D2561]">US States Covered</p>
+            <h3 id="kpiStatesCovered" class="text-3xl font-display font-extrabold text-[#0D2561] mt-1">0 <span class="text-sm font-normal text-slate-400">/ 50</span></h3>
+            <p class="text-xs text-[#0095D9] font-semibold mt-1.5 flex items-center gap-1">
+              <span>View coverage map</span> <i class="fa-solid fa-arrow-right text-[10px]"></i>
+            </p>
+          </div>
+          <div class="w-11 h-11 rounded-xl bg-[#0095D9]/10 text-[#0D2561] flex items-center justify-center text-lg">
+            <i class="fa-solid fa-flag-usa"></i>
+          </div>
+        </div>
+      </div>
+
+      <!-- Middle Grid: 14 Service Capabilities Breakdown + State & Recent Spotlight -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        <!-- Left 2 Cols: 14 Facility Services Coverage Chart -->
+        <div class="lg:col-span-2 bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-5">
+            <div>
+              <h3 class="font-display font-bold text-lg text-[#0D2561]">Coverage Across Our 14 Core Services</h3>
+              <p class="text-xs text-slate-500">Click any service bar below to jump straight to matching vendors in the directory.</p>
+            </div>
+            <span class="text-xs font-bold px-2.5 py-1 rounded-md bg-[#EBF1F8] text-[#0D2561] border border-[#0095D9]/20">Interactive Filter</span>
+          </div>
+          
+          <div id="serviceBreakdownChart" class="space-y-2.5">
+            <!-- Dynamically populated bars for all 14 services -->
+          </div>
+        </div>
+
+        <!-- Right 1 Col: Top Covered States & Recent Spotlight -->
+        <div class="space-y-6">
+          <!-- States Coverage Summary -->
+          <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+            <h3 class="font-display font-bold text-base text-[#0D2561] mb-1 flex items-center gap-2">
+              <i class="fa-solid fa-location-dot text-[#0095D9]"></i> Active State Footprints
+            </h3>
+            <p class="text-xs text-slate-500 mb-4">Click a state badge to view all vendors servicing that state.</p>
+            <div id="stateFootprintPills" class="flex flex-wrap gap-2">
+              <!-- Populated dynamically -->
+            </div>
+          </div>
+
+          <!-- Recent Additions & Priority Leads -->
+          <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+            <div class="flex items-center justify-between mb-3">
+              <h3 class="font-display font-bold text-base text-[#0D2561] flex items-center gap-2">
+                <i class="fa-solid fa-bolt text-[#FBC738]"></i> Recent Additions & Leads
+              </h3>
+              <button onclick="switchPage('directory')" class="text-xs font-bold text-[#0095D9] hover:underline">See All</button>
+            </div>
+            <div id="recentVendorsList" class="space-y-3">
+              <!-- Populated dynamically -->
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+
+    <!-- ===================================================================== -->
+    <!-- PAGE 2: VENDOR & LEAD DIRECTORY (ADD, FILTER & MANAGE)                -->
+    <!-- ===================================================================== -->
+    <section id="page-directory" class="hidden fade-in space-y-6">
+      
+      <!-- Page Header & Action Bar -->
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <h2 class="font-display text-2xl font-extrabold text-[#0D2561]">Vendor Partner & Lead Directory</h2>
+            <p class="text-sm text-slate-600 mt-1">
+              Add new confirmed partners or leads here, log their decision-makers, and filter across all <strong class="text-[#0D2561]">14 services</strong>, <strong class="text-[#0D2561]">50 states</strong>, or specific service cities.
+            </p>
+          </div>
+          <div class="flex flex-wrap items-center gap-2.5">
+            <button onclick="exportFilteredCSV()" class="px-3.5 py-2 rounded-xl bg-[#EBF1F8] hover:bg-slate-200 text-[#0D2561] font-bold text-xs sm:text-sm transition flex items-center gap-2 border border-slate-300">
+              <i class="fa-solid fa-file-csv text-[#0095D9]"></i> Export Filtered CSV
+            </button>
+            <button onclick="openVendorModal()" class="px-4 py-2 rounded-xl bg-[#0D2561] hover:bg-[#13327A] text-white font-bold text-xs sm:text-sm shadow-sm transition flex items-center gap-2">
+              <i class="fa-solid fa-plus text-[#FBC738]"></i> Add Vendor / Lead
+            </button>
+          </div>
+        </div>
+
+        <!-- SMART FILTER AUTOMATION BAR -->
+        <div class="mt-6 pt-5 border-t border-slate-200 space-y-4">
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+            
+            <!-- Search Input -->
+            <div class="lg:col-span-1">
+              <label class="block text-xs font-bold text-[#0D2561] mb-1">Search Company / Rep</label>
+              <div class="relative">
+                <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                <input type="text" id="filterSearch" oninput="applyDirectoryFilters()" placeholder="Name, email, notes..." class="w-full pl-8 pr-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#0095D9] focus:border-[#0095D9] outline-none" />
+              </div>
+            </div>
+
+            <!-- Status Filter -->
+            <div>
+              <label class="block text-xs font-bold text-[#0D2561] mb-1">Partner Status</label>
+              <select id="filterStatus" onchange="applyDirectoryFilters()" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg bg-white focus:ring-2 focus:ring-[#0095D9] outline-none">
+                <option value="ALL">All Vendors & Leads</option>
+                <option value="Active">Active Partners Only</option>
+                <option value="Lead">Leads / Vetting Only</option>
+              </select>
+            </div>
+
+            <!-- Service Capability Filter (All 14 Exact Services) -->
+            <div>
+              <label class="block text-xs font-bold text-[#0D2561] mb-1">Service Capability (14)</label>
+              <select id="filterService" onchange="applyDirectoryFilters()" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg bg-white focus:ring-2 focus:ring-[#0095D9] outline-none">
+                <option value="ALL">All 14 Service Capabilities</option>
+                <!-- Populated by JS -->
+              </select>
+            </div>
+
+            <!-- State Filter (All 50 US States) -->
+            <div>
+              <label class="block text-xs font-bold text-[#0D2561] mb-1">State Coverage (50 States)</label>
+              <select id="filterState" onchange="applyDirectoryFilters()" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg bg-white focus:ring-2 focus:ring-[#0095D9] outline-none">
+                <option value="ALL">All 50 US States</option>
+                <!-- Populated by JS -->
+              </select>
+            </div>
+
+            <!-- City Filter -->
+            <div>
+              <label class="block text-xs font-bold text-[#0D2561] mb-1">City / Metro Coverage</label>
+              <div class="relative">
+                <i class="fa-solid fa-city absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                <input type="text" id="filterCity" oninput="applyDirectoryFilters()" placeholder="e.g. Tampa, Dallas..." class="w-full pl-8 pr-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#0095D9] outline-none" />
+              </div>
+            </div>
+          </div>
+
+          <!-- Quick Service Filter Pills + View Toggle + Counter -->
+          <div class="flex flex-wrap items-center justify-between gap-3 pt-1">
+            <div class="flex items-center gap-2 text-xs">
+              <span id="directoryResultCount" class="font-bold bg-[#0095D9]/15 text-[#0D2561] px-3 py-1 rounded-full border border-[#0095D9]/30">
+                Showing 0 vendors
+              </span>
+              <button onclick="resetDirectoryFilters()" class="text-slate-500 hover:text-[#0095D9] font-semibold underline flex items-center gap-1">
+                <i class="fa-solid fa-rotate-left"></i> Reset Filters
+              </button>
+            </div>
+
+            <div class="flex items-center gap-2">
+              <button onclick="resetToSampleData()" class="text-xs text-slate-400 hover:text-[#0D2561] mr-2" title="Restore initial sample dataset">
+                Reset Sample Data
+              </button>
+              <div class="inline-flex rounded-lg border border-slate-300 bg-[#EBF1F8] p-0.5">
+                <button id="btnCardView" onclick="setDirectoryView('cards')" class="px-3 py-1 rounded-md text-xs font-bold bg-white text-[#0D2561] shadow-sm flex items-center gap-1.5">
+                  <i class="fa-solid fa-grip text-[#0095D9]"></i> Cards
+                </button>
+                <button id="btnTableView" onclick="setDirectoryView('table')" class="px-3 py-1 rounded-md text-xs font-semibold text-slate-600 hover:text-[#0D2561] flex items-center gap-1.5">
+                  <i class="fa-solid fa-table-list"></i> Table
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- DIRECTORY RESULTS CONTAINER -->
+      <div id="directoryCardsContainer" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+        <!-- Vendor Cards rendered here -->
+      </div>
+
+      <div id="directoryTableContainer" class="hidden bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="bg-[#EBF1F8] border-b border-slate-200 text-xs font-bold uppercase text-[#0D2561]">
+                <th class="py-3.5 px-4">Company & Status</th>
+                <th class="py-3.5 px-4">Contact Rep</th>
+                <th class="py-3.5 px-4">HQ & Service Coverage</th>
+                <th class="py-3.5 px-4">Service Capabilities</th>
+                <th class="py-3.5 px-4 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="directoryTableBody" class="divide-y divide-slate-200 text-sm">
+              <!-- Table rows rendered here -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Empty State -->
+      <div id="directoryEmptyState" class="hidden bg-white rounded-2xl border border-slate-200 p-12 text-center">
+        <div class="w-16 h-16 rounded-full bg-[#EBF1F8] text-[#0095D9] flex items-center justify-center mx-auto mb-4 text-2xl">
+          <i class="fa-solid fa-folder-open"></i>
+        </div>
+        <h3 class="font-display font-bold text-lg text-[#0D2561]">No matching vendors found</h3>
+        <p class="text-sm text-slate-500 max-w-md mx-auto mt-1 mb-4">
+          Try clearing one of your state, city, or service filters—or add a new vendor partner to our tracker right now.
+        </p>
+        <button onclick="resetDirectoryFilters()" class="px-4 py-2 rounded-xl bg-[#0D2561] text-white text-sm font-bold hover:bg-[#13327A]">
+          Clear All Filters
+        </button>
+      </div>
+
+    </section>
+
+
+    <!-- ===================================================================== -->
+    <!-- PAGE 3: COVERAGE MAP & CLIENT SITE DRIVE-TIME CALCULATOR              -->
+    <!-- ===================================================================== -->
+    <section id="page-map" class="hidden fade-in space-y-6">
+      
+      <!-- Client Facility Site Comparator Bar -->
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-5 border-b border-slate-200">
+          <div>
+            <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#0095D9]/15 text-[#0D2561] text-xs font-bold mb-1.5 border border-[#0095D9]/30">
+              <i class="fa-solid fa-calculator text-[#0095D9]"></i> Jowie's Site Proximity & Drive-Time Estimator
+            </div>
+            <h2 class="font-display text-2xl font-extrabold text-[#0D2561]">Vendor Map & Client Facility Distance Calculator</h2>
+            <p class="text-sm text-slate-600 mt-1">
+              Enter a client facility address or city below to pinpoint it on the map and automatically calculate <strong class="text-[#0D2561]">estimated driving hours and miles</strong> from every matching vendor partner's HQ.
+            </p>
+          </div>
+          
+          <!-- Quick Sample Client Test Sites -->
+          <div class="flex flex-wrap items-center gap-2">
+            <span class="text-xs font-bold text-slate-500">Quick Test Sites:</span>
+            <button onclick="setQuickClientSite('Orlando, FL 32801', 28.5383, -81.3792, 'FL', 'Orlando')" class="px-2.5 py-1 rounded-lg bg-[#EBF1F8] hover:bg-[#0095D9] hover:text-white text-[#0D2561] text-xs font-semibold border border-slate-200 transition">
+              Orlando, FL
+            </button>
+            <button onclick="setQuickClientSite('Austin, TX 78701', 30.2672, -97.7431, 'TX', 'Austin')" class="px-2.5 py-1 rounded-lg bg-[#EBF1F8] hover:bg-[#0095D9] hover:text-white text-[#0D2561] text-xs font-semibold border border-slate-200 transition">
+              Austin, TX
+            </button>
+            <button onclick="setQuickClientSite('Charlotte, NC 28202', 35.2271, -80.8431, 'NC', 'Charlotte')" class="px-2.5 py-1 rounded-lg bg-[#EBF1F8] hover:bg-[#0095D9] hover:text-white text-[#0D2561] text-xs font-semibold border border-slate-200 transition">
+              Charlotte, NC
+            </button>
+            <button onclick="setQuickClientSite('Columbus, OH 43215', 39.9612, -82.9988, 'OH', 'Columbus')" class="px-2.5 py-1 rounded-lg bg-[#EBF1F8] hover:bg-[#0095D9] hover:text-white text-[#0D2561] text-xs font-semibold border border-slate-200 transition">
+              Columbus, OH
+            </button>
+          </div>
+        </div>
+
+        <!-- Client Site Address Input & Map Filters -->
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-3 pt-5">
+          <div class="md:col-span-5">
+            <label class="block text-xs font-bold text-[#0D2561] mb-1">
+              <i class="fa-solid fa-location-crosshairs text-rose-600 mr-1"></i> Client Facility Address / City, State
+            </label>
+            <div class="flex gap-2">
+              <input type="text" id="clientSiteInput" placeholder="e.g. 400 W Church St, Orlando, FL or Dallas, TX" class="w-full px-3.5 py-2 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-[#0095D9] outline-none" onkeydown="if(event.key==='Enter') calculateClientSiteDistances()" />
+              <button id="btnLocateClient" onclick="calculateClientSiteDistances()" class="px-4 py-2 rounded-xl bg-[#0D2561] hover:bg-[#13327A] text-white font-bold text-sm shrink-0 transition flex items-center gap-1.5">
+                <i class="fa-solid fa-route text-[#FBC738]"></i> Compare
+              </button>
+            </div>
+          </div>
+
+          <div class="md:col-span-3">
+            <label class="block text-xs font-bold text-slate-600 mb-1">Filter Map by Service</label>
+            <select id="mapFilterService" onchange="refreshMapAndRankings()" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-xl bg-white focus:ring-2 focus:ring-[#0095D9] outline-none">
+              <option value="ALL">All 14 Services</option>
+            </select>
+          </div>
+
+          <div class="md:col-span-2">
+            <label class="block text-xs font-bold text-slate-600 mb-1">Filter by State</label>
+            <select id="mapFilterState" onchange="refreshMapAndRankings()" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-xl bg-white focus:ring-2 focus:ring-[#0095D9] outline-none">
+              <option value="ALL">All 50 States</option>
+            </select>
+          </div>
+
+          <div class="md:col-span-2">
+            <label class="block text-xs font-bold text-slate-600 mb-1">Partner Status</label>
+            <select id="mapFilterStatus" onchange="refreshMapAndRankings()" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-xl bg-white focus:ring-2 focus:ring-[#0095D9] outline-none">
+              <option value="ALL">Active & Leads</option>
+              <option value="Active">Active Only</option>
+              <option value="Lead">Leads Only</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Active Client Site Status Banner -->
+        <div id="activeClientSiteBanner" class="hidden mt-4 p-3 rounded-xl bg-[#FBC738]/20 border border-[#FBC738] flex flex-wrap items-center justify-between gap-2 text-xs sm:text-sm">
+          <div class="flex items-center gap-2 text-[#0D2561]">
+            <span class="w-6 h-6 rounded-full bg-rose-600 text-white flex items-center justify-center text-xs shrink-0">
+              <i class="fa-solid fa-star"></i>
+            </span>
+            <span>Comparing distances to Client Facility: <strong id="activeClientSiteLabel"></strong></span>
+          </div>
+          <button onclick="clearClientSite()" class="text-[#0D2561] hover:text-rose-700 font-bold underline text-xs">
+            Clear Client Pin
+          </button>
+        </div>
+      </div>
+
+      <!-- MAP + RANKED PROXIMITY LEADERBOARD GRID -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        <!-- Left 7 Cols: Interactive Leaflet Map -->
+        <div class="lg:col-span-7 bg-white rounded-2xl border border-slate-200 shadow-sm p-4 flex flex-col">
+          <div class="flex flex-wrap items-center justify-between gap-2 mb-3 px-1">
+            <div class="flex flex-wrap items-center gap-3 text-xs font-semibold text-[#0D2561]">
+              <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-[#0095D9] inline-block"></span> Active Partner HQ</span>
+              <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-[#FBC738] border border-[#0D2561]/30 inline-block"></span> Lead / Vetting HQ</span>
+              <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-rose-600 inline-block"></span> Client Facility Site</span>
+            </div>
+            <div class="flex items-center gap-3">
+              <button onclick="toggleMapBaseLayer()" id="btnSwitchMapStyle" class="text-xs font-bold text-[#0D2561] hover:text-[#0095D9] bg-[#EBF1F8] px-2.5 py-1 rounded-lg border border-slate-200 transition">
+                <i class="fa-solid fa-layer-group text-[#0095D9] mr-1"></i> Street View
+              </button>
+              <button onclick="fitMapToPins()" class="text-xs font-bold text-[#0095D9] hover:underline">
+                <i class="fa-solid fa-expand"></i> Reset Zoom
+              </button>
+            </div>
+          </div>
+          
+          <div id="vendorMap" class="border border-slate-200"></div>
+        </div>
+
+        <!-- Right 5 Cols: Ranked Drive-Time Leaderboard -->
+        <div class="lg:col-span-5 bg-white rounded-2xl border border-slate-200 shadow-sm p-5 flex flex-col max-h-[615px]">
+          <div class="flex items-center justify-between pb-3 border-b border-slate-200">
+            <div>
+              <h3 class="font-display font-extrabold text-base text-[#0D2561]" id="mapSidebarTitle">
+                Vendor Locations & Coverage
+              </h3>
+              <p class="text-xs text-slate-500" id="mapSidebarSubtitle">
+                Enter a client site above to rank vendors by driving hours.
+              </p>
+            </div>
+            <span id="mapFilteredCount" class="px-2.5 py-1 rounded-full bg-[#0D2561] text-[#FBC738] text-xs font-bold">0</span>
+          </div>
+
+          <div id="mapProximityList" class="overflow-y-auto flex-grow divide-y divide-slate-100 pr-1 mt-2 space-y-2">
+            <!-- Ranked cards populated here -->
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="bg-white border-t border-slate-200 mt-12 py-5">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-slate-500">
+      <div>
+        <strong class="text-[#0D2561]">Agile Facility Solutions - Vendor Partners</strong> &bull; Internal Operations & Dispatch Portal
+      </div>
+      <div>
+        Prepared and maintained by <strong class="text-[#0095D9]">Jowie Corrado, Vendor Coordinator</strong>
+      </div>
+    </div>
+  </footer>
+
+
+  <!-- ===================================================================== -->
+  <!-- ADD / EDIT VENDOR & LEAD MODAL                                        -->
+  <!-- ===================================================================== -->
+  <div id="vendorModal" class="hidden fixed inset-0 z-50 bg-[#081842]/70 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+    <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-3xl my-8 overflow-hidden fade-in">
+      
+      <!-- Modal Header -->
+      <div class="bg-[#0D2561] text-white px-6 py-4 flex items-center justify-between border-b border-[#0095D9]/30">
+        <div>
+          <h3 id="modalTitle" class="font-display font-extrabold text-lg">Add New Vendor Partner / Lead</h3>
+          <p class="text-xs text-slate-200">Log company details, decision-maker contact, coverage states/cities, and service capabilities.</p>
+        </div>
+        <button onclick="closeVendorModal()" class="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <!-- Modal Form -->
+      <form id="vendorForm" onsubmit="saveVendorForm(event)" class="p-6 space-y-5 max-h-[80vh] overflow-y-auto">
+        <input type="hidden" id="vendorId" />
+
+        <!-- Row 1: Status & Company Name -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div>
+            <label class="block text-xs font-bold text-[#0D2561] mb-1">Partner Status *</label>
+            <select id="formStatus" required class="w-full px-3 py-2 text-sm border border-slate-300 rounded-xl bg-white focus:ring-2 focus:ring-[#0095D9] outline-none">
+              <option value="Active">Active Vendor Partner</option>
+              <option value="Lead">Lead / In Vetting</option>
+            </select>
+          </div>
+          <div class="sm:col-span-2">
+            <label class="block text-xs font-bold text-[#0D2561] mb-1">Company Name *</label>
+            <input type="text" id="formCompany" required placeholder="e.g. Sunshine State Facility Pros LLC" class="w-full px-3.5 py-2 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-[#0095D9] outline-none" />
+          </div>
+        </div>
+
+        <!-- Row 2: Representative Name & Position -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-bold text-[#0D2561] mb-1">Representative Name *</label>
+            <input type="text" id="formRepName" required placeholder="e.g. Carlos Mendoza" class="w-full px-3.5 py-2 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-[#0095D9] outline-none" />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-[#0D2561] mb-1">Position / Role *</label>
+            <select id="formPosition" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-xl bg-white focus:ring-2 focus:ring-[#0095D9] outline-none">
+              <option value="CEO">CEO</option>
+              <option value="Business Owner">Business Owner</option>
+              <option value="Admin Representative">Admin Representative</option>
+              <option value="Operations Manager">Operations Manager</option>
+              <option value="Account Executive">Account Executive</option>
+              <option value="Regional Director">Regional Director</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Row 3: Email & Phone -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-bold text-[#0D2561] mb-1">Email Address *</label>
+            <input type="email" id="formEmail" required placeholder="contact@vendorcompany.com" class="w-full px-3.5 py-2 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-[#0095D9] outline-none" />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-[#0D2561] mb-1">Phone Number *</label>
+            <input type="text" id="formPhone" required placeholder="(813) 555-0194" class="w-full px-3.5 py-2 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-[#0095D9] outline-none" />
+          </div>
+        </div>
+
+        <!-- Row 4: Company HQ Location (Used for Map & Drive Time) -->
+        <div class="p-4 rounded-xl bg-[#F4F7FB] border border-slate-200 space-y-3">
+          <div class="flex items-center justify-between">
+            <h4 class="text-xs font-bold uppercase tracking-wider text-[#0D2561]">
+              <i class="fa-solid fa-building text-[#0095D9] mr-1"></i> Company HQ Address (For Map & Drive-Time Distance)
+            </h4>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-4 gap-3">
+            <div class="sm:col-span-2">
+              <label class="block text-xs font-semibold text-slate-600 mb-1">Street Address</label>
+              <input type="text" id="formStreet" placeholder="e.g. 1200 N Dale Mabry Hwy" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg bg-white outline-none focus:ring-2 focus:ring-[#0095D9]" />
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1">HQ City *</label>
+              <input type="text" id="formHqCity" required placeholder="e.g. Tampa" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg bg-white outline-none focus:ring-2 focus:ring-[#0095D9]" />
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1">HQ State *</label>
+              <select id="formHqState" required class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg bg-white outline-none focus:ring-2 focus:ring-[#0095D9]">
+                <!-- Populated by JS -->
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Row 5: Service Coverage Areas (Multiple States + Statewide Toggle + Multiple Cities) -->
+        <div class="p-4 rounded-xl bg-[#0095D9]/10 border border-[#0095D9]/30 space-y-3">
+          <div>
+            <h4 class="text-xs font-bold uppercase tracking-wider text-[#0D2561]">
+              <i class="fa-solid fa-map-location-dot text-[#0095D9] mr-1"></i> Confirmed Service Coverage Areas
+            </h4>
+            <p class="text-xs text-slate-600 mt-0.5">
+              Does this vendor service their whole state or multiple states? Add all states and specific cities they cover.
+            </p>
+          </div>
+
+          <!-- Add Coverage State -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs font-bold text-[#0D2561] mb-1">Add Covered State(s)</label>
+              <div class="flex gap-2">
+                <select id="coverageStatePicker" class="w-full px-3 py-1.5 text-sm border border-slate-300 rounded-lg bg-white outline-none">
+                  <!-- Populated by JS -->
+                </select>
+                <button type="button" onclick="addCoverageStateTag()" class="px-3 py-1.5 rounded-lg bg-[#0095D9] hover:bg-[#0284c7] text-white text-xs font-bold shrink-0">
+                  + State
+                </button>
+              </div>
+              <label class="inline-flex items-center gap-2 mt-2 cursor-pointer text-xs font-semibold text-[#0D2561]">
+                <input type="checkbox" id="formStatewide" class="rounded text-[#0095D9] focus:ring-[#0095D9]" />
+                <span>Covers Entire State(s) Statewide (e.g., Whole State of Florida)</span>
+              </label>
+            </div>
+
+            <!-- Add Specific Coverage Cities -->
+            <div>
+              <label class="block text-xs font-bold text-[#0D2561] mb-1">Add Specific Service Cities / Metros</label>
+              <div class="flex gap-2">
+                <input type="text" id="coverageCityInput" placeholder="e.g. Orlando, FL or Miami" class="w-full px-3 py-1.5 text-sm border border-slate-300 rounded-lg bg-white outline-none" onkeydown="if(event.key==='Enter'){event.preventDefault(); addCoverageCityTag();}" />
+                <button type="button" onclick="addCoverageCityTag()" class="px-3 py-1.5 rounded-lg bg-[#0D2561] hover:bg-[#13327A] text-white text-xs font-bold shrink-0">
+                  + City
+                </button>
+              </div>
+              <p class="text-[11px] text-slate-500 mt-1.5">Press Enter or click + City to add multiple cities.</p>
+            </div>
+          </div>
+
+          <!-- Selected Coverage Tags Display -->
+          <div class="flex flex-wrap gap-1.5 pt-1" id="selectedCoverageTags">
+            <!-- Tags rendered here -->
+          </div>
+        </div>
+
+        <!-- Row 6: 14 Service Capabilities Checkboxes -->
+        <div>
+          <div class="flex items-center justify-between mb-2">
+            <label class="block text-xs font-bold uppercase tracking-wider text-[#0D2561]">
+              Service Capabilities (Select all that apply) *
+            </label>
+            <span class="text-xs font-bold text-[#0095D9]" id="selectedServiceCount">0 selected</span>
+          </div>
+          <div id="formServicesGrid" class="grid grid-cols-1 sm:grid-cols-2 gap-2 p-3.5 rounded-xl border border-slate-200 bg-[#F4F7FB] max-h-56 overflow-y-auto">
+            <!-- 14 checkboxes populated by JS -->
+          </div>
+        </div>
+
+        <!-- Row 7: Notes & Vetting Info -->
+        <div>
+          <label class="block text-xs font-bold text-[#0D2561] mb-1">Coordinator Notes (COI, W-9, Dispatch Hours, Pricing Tier)</label>
+          <textarea id="formNotes" rows="2" placeholder="e.g. COI & W-9 verified. Services all of Florida with 24/7 emergency dispatch." class="w-full px-3.5 py-2 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-[#0095D9] outline-none"></textarea>
+        </div>
+
+        <!-- Modal Footer Actions -->
+        <div class="flex items-center justify-end gap-3 pt-4 border-t border-slate-200">
+          <button type="button" onclick="closeVendorModal()" class="px-4 py-2 rounded-xl border border-slate-300 text-slate-700 font-semibold text-sm hover:bg-slate-50">
+            Cancel
+          </button>
+          <button type="submit" class="px-5 py-2 rounded-xl bg-[#0D2561] hover:bg-[#13327A] text-white font-bold text-sm shadow-md flex items-center gap-2">
+            <i class="fa-solid fa-floppy-disk text-[#FBC738]"></i> Save Vendor Partner
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- TOAST NOTIFICATION BANNER -->
+  <div id="toastNotification" class="fixed bottom-5 right-5 z-50 hidden transform transition-all duration-300">
+    <div class="bg-[#0D2561] text-white px-4 py-3 rounded-xl shadow-xl border border-[#0095D9]/40 flex items-center gap-2.5 text-sm font-medium">
+      <i id="toastIcon" class="fa-solid fa-circle-check text-[#FBC738]"></i>
+      <span id="toastMessage">Saved!</span>
+    </div>
+  </div>
+
+
+  <!-- ===================================================================== -->
+  <!-- JAVASCRIPT APPLICATION LOGIC                                          -->
+  <!-- ===================================================================== -->
+  <script>
+    // 1. EXACT 14 SERVICE CAPABILITIES LIST
+    const SERVICE_CAPABILITIES = [
+      "Janitorial, Housekeeping and Custodial",
+      "HVAC Maintenance and Repair",
+      "Controlled Environment Cleaning",
+      "Industrial Cleaning",
+      "Specialty Surface Restoration and Maintenance",
+      "Security Guard Services",
+      "Pest control",
+      "Grounds, Landscaping and Snow Removal",
+      "Cosmetic Maintenance and Painting",
+      "Handyman Services",
+      "Disaster Recovery",
+      "Lighting Services",
+      "Parking Lot Cleaning",
+      "Locksmith Services"
+    ];
+
+    // 2. ALL 50 US STATES + COORDINATE CENTROIDS & MAJOR CITY FALLBACKS
+    const US_STATES = [
+      { code: "AL", name: "Alabama", lat: 32.8067, lng: -86.7911 },
+      { code: "AK", name: "Alaska", lat: 61.3707, lng: -152.4044 },
+      { code: "AZ", name: "Arizona", lat: 33.7298, lng: -111.4312 },
+      { code: "AR", name: "Arkansas", lat: 34.9697, lng: -92.3731 },
+      { code: "CA", name: "California", lat: 36.1162, lng: -119.6816 },
+      { code: "CO", name: "Colorado", lat: 39.0598, lng: -105.3111 },
+      { code: "CT", name: "Connecticut", lat: 41.5978, lng: -72.7554 },
+      { code: "DE", name: "Delaware", lat: 39.3185, lng: -75.5071 },
+      { code: "FL", name: "Florida", lat: 27.7663, lng: -81.6868 },
+      { code: "GA", name: "Georgia", lat: 33.0406, lng: -83.6431 },
+      { code: "HI", name: "Hawaii", lat: 21.0943, lng: -157.4983 },
+      { code: "ID", name: "Idaho", lat: 44.2405, lng: -114.4788 },
+      { code: "IL", name: "Illinois", lat: 40.3495, lng: -88.9861 },
+      { code: "IN", name: "Indiana", lat: 39.8494, lng: -86.2583 },
+      { code: "IA", name: "Iowa", lat: 42.0115, lng: -93.2105 },
+      { code: "KS", name: "Kansas", lat: 38.5266, lng: -96.7265 },
+      { code: "KY", name: "Kentucky", lat: 37.6681, lng: -84.6701 },
+      { code: "LA", name: "Louisiana", lat: 31.1695, lng: -91.8678 },
+      { code: "ME", name: "Maine", lat: 44.6939, lng: -69.3819 },
+      { code: "MD", name: "Maryland", lat: 39.0639, lng: -76.8021 },
+      { code: "MA", name: "Massachusetts", lat: 42.2302, lng: -71.5301 },
+      { code: "MI", name: "Michigan", lat: 43.3266, lng: -84.5361 },
+      { code: "MN", name: "Minnesota", lat: 45.6945, lng: -93.9002 },
+      { code: "MS", name: "Mississippi", lat: 32.7416, lng: -89.6787 },
+      { code: "MO", name: "Missouri", lat: 38.4561, lng: -92.2884 },
+      { code: "MT", name: "Montana", lat: 46.9219, lng: -110.4544 },
+      { code: "NE", name: "Nebraska", lat: 41.1254, lng: -98.2681 },
+      { code: "NV", name: "Nevada", lat: 38.3135, lng: -117.0554 },
+      { code: "NH", name: "New Hampshire", lat: 43.4525, lng: -71.5639 },
+      { code: "NJ", name: "New Jersey", lat: 40.2989, lng: -74.5210 },
+      { code: "NM", name: "New Mexico", lat: 34.8405, lng: -106.2485 },
+      { code: "NY", name: "New York", lat: 42.1657, lng: -74.9481 },
+      { code: "NC", name: "North Carolina", lat: 35.6301, lng: -79.8064 },
+      { code: "ND", name: "North Dakota", lat: 47.5289, lng: -99.7840 },
+      { code: "OH", name: "Ohio", lat: 40.3888, lng: -82.7649 },
+      { code: "OK", name: "Oklahoma", lat: 35.5653, lng: -96.9289 },
+      { code: "OR", name: "Oregon", lat: 44.5720, lng: -122.0709 },
+      { code: "PA", name: "Pennsylvania", lat: 40.5908, lng: -77.2098 },
+      { code: "RI", name: "Rhode Island", lat: 41.6809, lng: -71.5118 },
+      { code: "SC", name: "South Carolina", lat: 33.8569, lng: -80.9450 },
+      { code: "SD", name: "South Dakota", lat: 44.2998, lng: -99.4388 },
+      { code: "TN", name: "Tennessee", lat: 35.7478, lng: -86.6923 },
+      { code: "TX", name: "Texas", lat: 31.0545, lng: -97.5635 },
+      { code: "UT", name: "Utah", lat: 40.1500, lng: -111.8624 },
+      { code: "VT", name: "Vermont", lat: 44.0459, lng: -72.7107 },
+      { code: "VA", name: "Virginia", lat: 37.7693, lng: -78.1700 },
+      { code: "WA", name: "Washington", lat: 47.4009, lng: -121.4905 },
+      { code: "WV", name: "West Virginia", lat: 38.4912, lng: -80.9545 },
+      { code: "WI", name: "Wisconsin", lat: 44.2685, lng: -89.6165 },
+      { code: "WY", name: "Wyoming", lat: 42.7559, lng: -107.3025 }
+    ];
+
+    // Major US Cities Coordinate Dictionary for Reliable Offline/Instant Geocoding
+    const CITY_COORDS = {
+      "tampa": { lat: 27.9506, lng: -82.4572, state: "FL" },
+      "orlando": { lat: 28.5383, lng: -81.3792, state: "FL" },
+      "miami": { lat: 25.7617, lng: -80.1918, state: "FL" },
+      "jacksonville": { lat: 30.3322, lng: -81.6557, state: "FL" },
+      "dallas": { lat: 32.7767, lng: -96.7970, state: "TX" },
+      "houston": { lat: 29.7604, lng: -95.3698, state: "TX" },
+      "austin": { lat: 30.2672, lng: -97.7431, state: "TX" },
+      "san antonio": { lat: 29.4241, lng: -98.4936, state: "TX" },
+      "atlanta": { lat: 33.7490, lng: -84.3880, state: "GA" },
+      "savannah": { lat: 32.0809, lng: -81.0912, state: "GA" },
+      "charlotte": { lat: 35.2271, lng: -80.8431, state: "NC" },
+      "raleigh": { lat: 35.7796, lng: -78.6382, state: "NC" },
+      "chicago": { lat: 41.8781, lng: -87.6298, state: "IL" },
+      "new york": { lat: 40.7128, lng: -74.0060, state: "NY" },
+      "buffalo": { lat: 42.8864, lng: -78.8784, state: "NY" },
+      "los angeles": { lat: 34.0522, lng: -118.2437, state: "CA" },
+      "san diego": { lat: 32.7157, lng: -117.1611, state: "CA" },
+      "san francisco": { lat: 37.7749, lng: -122.4194, state: "CA" },
+      "phoenix": { lat: 33.4484, lng: -112.0740, state: "AZ" },
+      "denver": { lat: 39.7392, lng: -104.9903, state: "CO" },
+      "seattle": { lat: 47.6062, lng: -122.3321, state: "WA" },
+      "columbus": { lat: 39.9612, lng: -82.9988, state: "OH" },
+      "cleveland": { lat: 41.4993, lng: -81.6944, state: "OH" },
+      "philadelphia": { lat: 39.9526, lng: -75.1652, state: "PA" },
+      "pittsburgh": { lat: 40.4406, lng: -79.9959, state: "PA" },
+      "nashville": { lat: 36.1627, lng: -86.7816, state: "TN" },
+      "boston": { lat: 42.3601, lng: -71.0589, state: "MA" },
+      "detroit": { lat: 42.3314, lng: -83.0458, state: "MI" },
+      "minneapolis": { lat: 44.9778, lng: -93.2650, state: "MN" },
+      "indianapolis": { lat: 39.7684, lng: -86.1581, state: "IN" },
+      "las vegas": { lat: 36.1699, lng: -115.1398, state: "NV" }
+    };
+
+    // 3. REALISTIC PRE-LOADED SAMPLE DATA (Including Tampa FL Statewide Partner + Coverage across all 14 services)
+    const SAMPLE_VENDORS = [
+      {
+        id: "v-101",
+        status: "Active",
+        company: "Gulf Coast Total Facility Services",
+        repName: "Carlos Mendoza",
+        position: "CEO",
+        email: "cmendoza@gulfcoastfacility.com",
+        phone: "(813) 555-0194",
+        street: "4820 W Kennedy Blvd, Suite 300",
+        hqCity: "Tampa",
+        hqState: "FL",
+        lat: 27.9452,
+        lng: -82.5256,
+        coverageStates: ["FL"],
+        statewide: true,
+        coverageCities: ["Tampa, FL", "Orlando, FL", "Miami, FL", "Jacksonville, FL", "Sarasota, FL"],
+        services: [
+          "Janitorial, Housekeeping and Custodial",
+          "Controlled Environment Cleaning",
+          "Specialty Surface Restoration and Maintenance",
+          "Parking Lot Cleaning"
+        ],
+        notes: "HQ in Tampa, FL — confirmed Statewide Florida coverage. COI & W-9 on file. Fast 2-hour emergency response."
+      },
+      {
+        id: "v-102",
+        status: "Active",
+        company: "Lone Star Mechanical & HVAC Pros",
+        repName: "Rebecca Vance",
+        position: "Business Owner",
+        email: "rvance@lonestarhvacpros.com",
+        phone: "(214) 555-0148",
+        street: "1910 Pacific Ave",
+        hqCity: "Dallas",
+        hqState: "TX",
+        lat: 32.7825,
+        lng: -96.7954,
+        coverageStates: ["TX", "OK"],
+        statewide: true,
+        coverageCities: ["Dallas, TX", "Fort Worth, TX", "Austin, TX", "Houston, TX", "Oklahoma City, OK"],
+        services: [
+          "HVAC Maintenance and Repair",
+          "Lighting Services",
+          "Handyman Services"
+        ],
+        notes: "Covers all of Texas & Southern Oklahoma. Master HVAC licensed technicians, great SLA track record."
+      },
+      {
+        id: "v-103",
+        status: "Active",
+        company: "Peachtree Commercial Grounds & Security",
+        repName: "Marcus Sterling",
+        position: "Operations Manager",
+        email: "msterling@peachtreecommercial.com",
+        phone: "(404) 555-0172",
+        street: "750 Peachtree St NE",
+        hqCity: "Atlanta",
+        hqState: "GA",
+        lat: 33.7748,
+        lng: -84.3849,
+        coverageStates: ["GA", "SC", "NC"],
+        statewide: false,
+        coverageCities: ["Atlanta, GA", "Savannah, GA", "Charlotte, NC", "Greenville, SC"],
+        services: [
+          "Grounds, Landscaping and Snow Removal",
+          "Security Guard Services",
+          "Parking Lot Cleaning"
+        ],
+        notes: "24/7 uniformed security patrols & full commercial landscaping crews across GA/NC/SC metros."
+      },
+      {
+        id: "v-104",
+        status: "Active",
+        company: "Midwest Industrial & Disaster Response",
+        repName: "Elena Rostova",
+        position: "CEO",
+        email: "elena@midwestidr.com",
+        phone: "(312) 555-0163",
+        street: "540 W Madison St",
+        hqCity: "Chicago",
+        hqState: "IL",
+        lat: 41.8819,
+        lng: -87.6417,
+        coverageStates: ["IL", "IN", "WI", "MI"],
+        statewide: true,
+        coverageCities: ["Chicago, IL", "Indianapolis, IN", "Milwaukee, WI", "Detroit, MI"],
+        services: [
+          "Industrial Cleaning",
+          "Disaster Recovery",
+          "Controlled Environment Cleaning",
+          "Specialty Surface Restoration and Maintenance"
+        ],
+        notes: "IICRC certified water/fire disaster recovery and cleanroom/industrial plant sanitation."
+      },
+      {
+        id: "v-105",
+        status: "Lead",
+        company: "Buckeye Shield Pest & Locksmith Group",
+        repName: "Derrick Holloway",
+        position: "Admin Representative",
+        email: "dispatch@buckeyeshield.com",
+        phone: "(614) 555-0129",
+        street: "250 E Broad St",
+        hqCity: "Columbus",
+        hqState: "OH",
+        lat: 39.9625,
+        lng: -82.9935,
+        coverageStates: ["OH", "PA", "KY"],
+        statewide: true,
+        coverageCities: ["Columbus, OH", "Cleveland, OH", "Cincinnati, OH", "Pittsburgh, PA"],
+        services: [
+          "Pest control",
+          "Locksmith Services",
+          "Handyman Services"
+        ],
+        notes: "Lead in final COI review. Confirmed statewide Ohio commercial pest control & master commercial locksmiths."
+      },
+      {
+        id: "v-106",
+        status: "Active",
+        company: "Empire State Facade, Paint & Lighting",
+        repName: "Sophia Castellano",
+        position: "Business Owner",
+        email: "scastellano@empirefacades.com",
+        phone: "(212) 555-0188",
+        street: "350 5th Ave",
+        hqCity: "New York",
+        hqState: "NY",
+        lat: 40.7484,
+        lng: -73.9857,
+        coverageStates: ["NY", "NJ", "CT"],
+        statewide: false,
+        coverageCities: ["New York, NY", "Newark, NJ", "Jersey City, NJ", "Stamford, CT"],
+        services: [
+          "Cosmetic Maintenance and Painting",
+          "Lighting Services",
+          "Handyman Services"
+        ],
+        notes: "Union & non-union crews available for overnight retail/office painting and LED retrofits."
+      },
+      {
+        id: "v-107",
+        status: "Lead",
+        company: "Pacific Crest Facility & Snow Management",
+        repName: "Trevor Takahashi",
+        position: "Account Executive",
+        email: "ttakahashi@pacificcrestfm.com",
+        phone: "(206) 555-0155",
+        street: "1201 Third Ave",
+        hqCity: "Seattle",
+        hqState: "WA",
+        lat: 47.6062,
+        lng: -122.3321,
+        coverageStates: ["WA", "OR", "CA"],
+        statewide: false,
+        coverageCities: ["Seattle, WA", "Portland, OR", "San Francisco, CA", "Los Angeles, CA"],
+        services: [
+          "Grounds, Landscaping and Snow Removal",
+          "Janitorial, Housekeeping and Custodial",
+          "Parking Lot Cleaning"
+        ],
+        notes: "Submitted rate sheet for West Coast multi-site retail accounts. Awaiting W-9."
+      },
+      {
+        id: "v-108",
+        status: "Active",
+        company: "Carolinas Rapid Response & Security",
+        repName: "Hannah Whitaker",
+        position: "CEO",
+        email: "hwhitaker@carolinasrapid.com",
+        phone: "(704) 555-0117",
+        street: "301 S Tryon St",
+        hqCity: "Charlotte",
+        hqState: "NC",
+        lat: 35.2251,
+        lng: -80.8456,
+        coverageStates: ["NC", "SC", "VA"],
+        statewide: true,
+        coverageCities: ["Charlotte, NC", "Raleigh, NC", "Columbia, SC", "Richmond, VA"],
+        services: [
+          "Security Guard Services",
+          "Disaster Recovery",
+          "Locksmith Services",
+          "Cosmetic Maintenance and Painting"
+        ],
+        notes: "Active partner covering NC/SC/VA statewide. Great pricing on access control & 24/7 guard posts."
+      }
+    ];
+
+    // 4. APPLICATION STATE
+    const STORAGE_KEY = "agile_facility_vendors_jowie_v1";
+    let vendors = [];
+    let currentDirectoryView = "cards";
+    let modalTempStates = [];
+    let modalTempCities = [];
+
+    // Leaflet Map State
+    let mapInstance = null;
+    let baseTileLayer = null;
+    let currentMapTheme = "positron"; // 'positron' (CartoDB Light) or 'esri' (Esri World Street Map)
+    let vendorMarkersLayer = null;
+    let clientMarkerLayer = null;
+    let routeLinesLayer = null;
+    let currentClientSite = null; // { label, lat, lng, stateCode, city }
+
+    // 5. INITIALIZATION ON WINDOW LOAD
+    window.onload = function () {
+      loadVendorsFromStorage();
+      populateDropdownOptions();
+      renderAllViews();
+      initLeafletMap();
+    };
+
+    function loadVendorsFromStorage() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            vendors = parsed;
+            return;
+          }
+        }
+      } catch (e) {
+        console.error("Failed to read localStorage:", e);
+      }
+      vendors = JSON.parse(JSON.stringify(SAMPLE_VENDORS));
+      saveVendorsToStorage();
+    }
+
+    function saveVendorsToStorage() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(vendors));
+      } catch (e) {
+        console.error("Failed to save localStorage:", e);
+      }
+    }
+
+    function resetToSampleData() {
+      vendors = JSON.parse(JSON.stringify(SAMPLE_VENDORS));
+      saveVendorsToStorage();
+      renderAllViews();
+      showToast("Restored Jowie's initial sample vendor dataset.");
+    }
+
+    // 6. POPULATE DROPDOWNS & FORM CHECKBOXES
+    function populateDropdownOptions() {
+      // Service dropdowns (Directory Filter + Map Filter)
+      const serviceSelects = [
+        document.getElementById("filterService"),
+        document.getElementById("mapFilterService")
+      ];
+      serviceSelects.forEach(sel => {
+        if (!sel) return;
+        SERVICE_CAPABILITIES.forEach(svc => {
+          const opt = document.createElement("option");
+          opt.value = svc;
+          opt.textContent = svc;
+          sel.appendChild(opt);
+        });
+      });
+
+      // State dropdowns (Directory Filter, Map Filter, HQ State, Coverage Picker)
+      const stateSelects = [
+        document.getElementById("filterState"),
+        document.getElementById("mapFilterState"),
+        document.getElementById("formHqState"),
+        document.getElementById("coverageStatePicker")
+      ];
+      stateSelects.forEach(sel => {
+        if (!sel) return;
+        US_STATES.forEach(st => {
+          const opt = document.createElement("option");
+          opt.value = st.code;
+          opt.textContent = `${st.code} - ${st.name}`;
+          sel.appendChild(opt);
+        });
+      });
+
+      // Modal 14 Service Checkboxes
+      const servicesGrid = document.getElementById("formServicesGrid");
+      servicesGrid.innerHTML = "";
+      SERVICE_CAPABILITIES.forEach((svc, idx) => {
+        const label = document.createElement("label");
+        label.className = "flex items-start gap-2.5 p-2 rounded-lg bg-white border border-slate-200 hover:border-[#0095D9] cursor-pointer text-xs font-medium text-[#0D2561] transition";
+        label.innerHTML = `
+          <input type="checkbox" name="vendorServices" value="${svc}" onchange="updateSelectedServiceCounter()" class="mt-0.5 rounded text-[#0095D9] focus:ring-[#0095D9]" />
+          <span>${svc}</span>
+        `;
+        servicesGrid.appendChild(label);
+      });
+    }
+
+    // 7. PAGE NAVIGATION (GOOGLE SITES MULTI-PAGE TABS)
+    function switchPage(pageName) {
+      const pages = ["overview", "directory", "map"];
+      pages.forEach(p => {
+        const section = document.getElementById(`page-${p}`);
+        const tab = document.getElementById(`tab-${p}`);
+        if (p === pageName) {
+          section.classList.remove("hidden");
+          tab.classList.add("active", "text-white", "font-semibold");
+          tab.classList.remove("text-slate-300", "font-medium");
+        } else {
+          section.classList.add("hidden");
+          tab.classList.remove("active", "text-white", "font-semibold");
+          tab.classList.add("text-slate-300", "font-medium");
+        }
+      });
+
+      if (pageName === "map") {
+        setTimeout(() => {
+          if (mapInstance) {
+            mapInstance.invalidateSize();
+            refreshMapAndRankings();
+          }
+        }, 120);
+      } else if (pageName === "overview") {
+        renderOverviewPage();
+      } else if (pageName === "directory") {
+        applyDirectoryFilters();
+      }
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    function renderAllViews() {
+      document.getElementById("navVendorCount").textContent = vendors.length;
+      renderOverviewPage();
+      applyDirectoryFilters();
+      if (mapInstance) {
+        refreshMapAndRankings();
+      }
+    }
+
+    // 8. PAGE 1: OVERVIEW & COMMAND CENTER LOGIC
+    function renderOverviewPage() {
+      const total = vendors.length;
+      const activeCount = vendors.filter(v => v.status === "Active").length;
+      const leadCount = vendors.filter(v => v.status === "Lead").length;
+
+      // Unique states covered across all vendors (HQ + coverageStates)
+      const uniqueStates = new Set();
+      vendors.forEach(v => {
+        if (v.hqState) uniqueStates.add(v.hqState);
+        (v.coverageStates || []).forEach(st => uniqueStates.add(st));
+      });
+
+      document.getElementById("kpiTotalVendors").textContent = total;
+      document.getElementById("kpiActiveVendors").textContent = activeCount;
+      document.getElementById("kpiLeadVendors").textContent = leadCount;
+      document.getElementById("kpiStatesCovered").innerHTML = `${uniqueStates.size} <span class="text-sm font-normal text-slate-400">/ 50</span>`;
+
+      // Render 14 Service Capability Bars
+      const chartContainer = document.getElementById("serviceBreakdownChart");
+      chartContainer.innerHTML = "";
+      const maxCount = Math.max(1, ...SERVICE_CAPABILITIES.map(svc => vendors.filter(v => v.services.includes(svc)).length));
+
+      SERVICE_CAPABILITIES.forEach(svc => {
+        const count = vendors.filter(v => v.services.includes(svc)).length;
+        const pct = Math.round((count / maxCount) * 100);
+        const row = document.createElement("div");
+        row.onclick = () => filterByServiceFromOverview(svc);
+        row.className = "group cursor-pointer p-2 rounded-lg hover:bg-[#F4F7FB] transition";
+        row.innerHTML = `
+          <div class="flex items-center justify-between text-xs font-medium mb-1">
+            <span class="text-[#0D2561] group-hover:text-[#0095D9] font-semibold transition">${svc}</span>
+            <span class="text-slate-600 font-bold">${count} ${count === 1 ? "partner" : "partners"}</span>
+          </div>
+          <div class="w-full h-2.5 bg-[#EBF1F8] rounded-full overflow-hidden">
+            <div class="h-full bg-gradient-to-r from-[#0D2561] to-[#0095D9] group-hover:from-[#0095D9] group-hover:to-[#FBC738] rounded-full transition-all duration-500" style="width: ${count === 0 ? 2 : pct}%"></div>
+          </div>
+        `;
+        chartContainer.appendChild(row);
+      });
+
+      // Render State Footprint Pills
+      const stateContainer = document.getElementById("stateFootprintPills");
+      stateContainer.innerHTML = "";
+      const sortedStates = Array.from(uniqueStates).sort();
+      if (sortedStates.length === 0) {
+        stateContainer.innerHTML = `<span class="text-xs text-slate-400">No states added yet.</span>`;
+      } else {
+        sortedStates.forEach(stCode => {
+          const count = vendors.filter(v => v.hqState === stCode || (v.coverageStates || []).includes(stCode)).length;
+          const btn = document.createElement("button");
+          btn.onclick = () => filterByStateFromOverview(stCode);
+          btn.className = "px-2.5 py-1 rounded-lg bg-[#EBF1F8] hover:bg-[#0095D9] hover:text-white text-[#0D2561] text-xs font-bold border border-slate-200 transition flex items-center gap-1.5";
+          btn.innerHTML = `<span>${stCode}</span><span class="px-1.5 py-0.2 rounded bg-white text-[#0D2561] text-[10px]">${count}</span>`;
+          stateContainer.appendChild(btn);
+        });
+      }
+
+      // Render Recent Additions & Priority Leads Spotlight
+      const recentList = document.getElementById("recentVendorsList");
+      recentList.innerHTML = "";
+      const spotlight = [...vendors].reverse().slice(0, 4);
+      spotlight.forEach(v => {
+        const isLead = v.status === "Lead";
+        const item = document.createElement("div");
+        item.className = "p-3 rounded-xl border border-slate-200 bg-[#F4F7FB] hover:bg-white transition flex items-start justify-between gap-2";
+        item.innerHTML = `
+          <div class="min-w-0">
+            <div class="flex items-center gap-1.5">
+              <span class="w-2 h-2 rounded-full shrink-0 ${isLead ? 'bg-[#FBC738]' : 'bg-[#0095D9]'}"></span>
+              <p class="text-xs font-bold text-[#0D2561] truncate">${escapeHtml(v.company)}</p>
+            </div>
+            <p class="text-[11px] text-slate-500 mt-0.5 truncate">
+              ${escapeHtml(v.repName)} (${escapeHtml(v.position)}) &bull; HQ: ${escapeHtml(v.hqCity)}, ${escapeHtml(v.hqState)}
+            </p>
+          </div>
+          <span class="shrink-0 px-2 py-0.5 rounded-full text-[10px] font-bold ${isLead ? 'bg-[#FBC738]/30 text-[#0D2561]' : 'bg-[#0095D9]/15 text-[#0D2561]'}">
+            ${isLead ? 'Lead' : 'Active'}
+          </span>
+        `;
+        recentList.appendChild(item);
+      });
+    }
+
+    function filterByServiceFromOverview(serviceName) {
+      resetDirectoryFilters(false);
+      document.getElementById("filterService").value = serviceName;
+      switchPage("directory");
+    }
+
+    function filterByStateFromOverview(stateCode) {
+      resetDirectoryFilters(false);
+      document.getElementById("filterState").value = stateCode;
+      switchPage("directory");
+    }
+
+    function filterByStatusFromOverview(status) {
+      resetDirectoryFilters(false);
+      document.getElementById("filterStatus").value = status;
+      switchPage("directory");
+    }
+
+    // 9. PAGE 2: DIRECTORY FILTERING & RENDERING
+    function getFilteredDirectoryVendors() {
+      const search = document.getElementById("filterSearch").value.trim().toLowerCase();
+      const status = document.getElementById("filterStatus").value;
+      const service = document.getElementById("filterService").value;
+      const state = document.getElementById("filterState").value;
+      const city = document.getElementById("filterCity").value.trim().toLowerCase();
+
+      return vendors.filter(v => {
+        if (status !== "ALL" && v.status !== status) return false;
+        if (service !== "ALL" && !(v.services || []).includes(service)) return false;
+
+        if (state !== "ALL") {
+          const matchesState = v.hqState === state || (v.coverageStates || []).includes(state);
+          if (!matchesState) return false;
+        }
+
+        if (city) {
+          const hqMatch = (v.hqCity || "").toLowerCase().includes(city);
+          const covCityMatch = (v.coverageCities || []).some(c => c.toLowerCase().includes(city));
+          if (!hqMatch && !covCityMatch) return false;
+        }
+
+        if (search) {
+          const blob = `${v.company} ${v.repName} ${v.position} ${v.email} ${v.phone} ${v.hqCity} ${v.hqState} ${v.notes}`.toLowerCase();
+          if (!blob.includes(search)) return false;
+        }
+
+        return true;
+      });
+    }
+
+    function applyDirectoryFilters() {
+      const filtered = getFilteredDirectoryVendors();
+      document.getElementById("directoryResultCount").textContent = `Showing ${filtered.length} of ${vendors.length} vendors`;
+
+      const emptyState = document.getElementById("directoryEmptyState");
+      const cardsContainer = document.getElementById("directoryCardsContainer");
+      const tableContainer = document.getElementById("directoryTableContainer");
+
+      if (filtered.length === 0) {
+        emptyState.classList.remove("hidden");
+        cardsContainer.classList.add("hidden");
+        tableContainer.classList.add("hidden");
+        return;
+      }
+
+      emptyState.classList.add("hidden");
+      if (currentDirectoryView === "cards") {
+        cardsContainer.classList.remove("hidden");
+        tableContainer.classList.add("hidden");
+        renderDirectoryCards(filtered);
+      } else {
+        cardsContainer.classList.add("hidden");
+        tableContainer.classList.remove("hidden");
+        renderDirectoryTable(filtered);
+      }
+    }
+
+    function resetDirectoryFilters(shouldRender = true) {
+      document.getElementById("filterSearch").value = "";
+      document.getElementById("filterStatus").value = "ALL";
+      document.getElementById("filterService").value = "ALL";
+      document.getElementById("filterState").value = "ALL";
+      document.getElementById("filterCity").value = "";
+      if (shouldRender) applyDirectoryFilters();
+    }
+
+    function setDirectoryView(view) {
+      currentDirectoryView = view;
+      const btnCard = document.getElementById("btnCardView");
+      const btnTable = document.getElementById("btnTableView");
+      if (view === "cards") {
+        btnCard.className = "px-3 py-1 rounded-md text-xs font-bold bg-white text-[#0D2561] shadow-sm flex items-center gap-1.5";
+        btnTable.className = "px-3 py-1 rounded-md text-xs font-semibold text-slate-600 hover:text-[#0D2561] flex items-center gap-1.5";
+      } else {
+        btnTable.className = "px-3 py-1 rounded-md text-xs font-bold bg-white text-[#0D2561] shadow-sm flex items-center gap-1.5";
+        btnCard.className = "px-3 py-1 rounded-md text-xs font-semibold text-slate-600 hover:text-[#0D2561] flex items-center gap-1.5";
+      }
+      applyDirectoryFilters();
+    }
+
+    function renderDirectoryCards(list) {
+      const container = document.getElementById("directoryCardsContainer");
+      container.innerHTML = "";
+
+      list.forEach(v => {
+        const isActive = v.status === "Active";
+        const coveredStates = Array.from(new Set([v.hqState, ...(v.coverageStates || [])])).filter(Boolean);
+        
+        const card = document.createElement("div");
+        card.className = "bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition flex flex-col justify-between overflow-hidden";
+        card.innerHTML = `
+          <div>
+            <!-- Top Color Strip & Header -->
+            <div class="p-5 border-b border-slate-100">
+              <div class="flex items-start justify-between gap-2 mb-2">
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold ${isActive ? 'bg-[#0095D9]/15 text-[#0D2561]' : 'bg-[#FBC738]/30 text-[#0D2561]'}">
+                  <span class="w-1.5 h-1.5 rounded-full ${isActive ? 'bg-[#0095D9]' : 'bg-amber-600'}"></span>
+                  ${isActive ? 'Active Partner' : 'Lead / Vetting'}
+                </span>
+                
+                <div class="flex items-center gap-1">
+                  ${!isActive ? `
+                    <button onclick="promoteLeadToActive('${v.id}')" title="Promote Lead to Active Partner" class="px-2 py-1 rounded-lg bg-[#0095D9]/15 hover:bg-[#0095D9] text-[#0D2561] hover:text-white text-[11px] font-bold transition">
+                      <i class="fa-solid fa-check"></i> Activate
+                    </button>
+                  ` : ''}
+                  <button onclick="openVendorModal('${v.id}')" title="Edit Vendor" class="p-1.5 rounded-lg text-slate-400 hover:text-[#0D2561] hover:bg-slate-100 transition">
+                    <i class="fa-solid fa-pen-to-square"></i>
+                  </button>
+                  <button onclick="deleteVendor('${v.id}')" title="Delete Vendor" class="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition">
+                    <i class="fa-solid fa-trash-can"></i>
+                  </button>
+                </div>
+              </div>
+
+              <h3 class="font-display font-extrabold text-lg text-[#0D2561] leading-snug">${escapeHtml(v.company)}</h3>
+              
+              <!-- Representative & Role -->
+              <div class="mt-2 flex items-center gap-2 text-xs text-slate-600">
+                <span class="w-6 h-6 rounded-full bg-[#0D2561]/10 text-[#0D2561] flex items-center justify-center font-bold shrink-0">
+                  <i class="fa-solid fa-user-tie text-[11px]"></i>
+                </span>
+                <div>
+                  <span class="font-bold text-[#0D2561]">${escapeHtml(v.repName)}</span>
+                  <span class="px-2 py-0.5 ml-1 rounded bg-[#EBF1F8] text-[#0D2561] font-semibold text-[11px]">${escapeHtml(v.position)}</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Contact & Coverage Info -->
+            <div class="p-5 space-y-3.5 text-xs">
+              <!-- Email & Phone with One-Click Copy -->
+              <div class="grid grid-cols-1 gap-1.5">
+                <div class="flex items-center justify-between bg-[#F4F7FB] px-3 py-1.5 rounded-lg border border-slate-200/70">
+                  <a href="mailto:${escapeHtml(v.email)}" class="text-[#0095D9] hover:underline font-semibold truncate flex items-center gap-2">
+                    <i class="fa-solid fa-envelope text-slate-400"></i> ${escapeHtml(v.email)}
+                  </a>
+                  <button onclick="copyText('${escapeHtml(v.email)}', 'Email copied!')" class="text-slate-400 hover:text-[#0D2561] ml-2" title="Copy Email">
+                    <i class="fa-regular fa-copy"></i>
+                  </button>
+                </div>
+                <div class="flex items-center justify-between bg-[#F4F7FB] px-3 py-1.5 rounded-lg border border-slate-200/70">
+                  <a href="tel:${escapeHtml(v.phone)}" class="text-[#0D2561] hover:text-[#0095D9] font-semibold flex items-center gap-2">
+                    <i class="fa-solid fa-phone text-slate-400"></i> ${escapeHtml(v.phone)}
+                  </a>
+                  <button onclick="copyText('${escapeHtml(v.phone)}', 'Phone copied!')" class="text-slate-400 hover:text-[#0D2561] ml-2" title="Copy Phone">
+                    <i class="fa-regular fa-copy"></i>
+                  </button>
+                </div>
+              </div>
+
+              <!-- HQ & Multi-State / City Coverage -->
+              <div class="space-y-1.5">
+                <div class="flex items-start gap-2 text-slate-600">
+                  <i class="fa-solid fa-building text-[#0D2561] mt-0.5"></i>
+                  <span><strong class="text-[#0D2561]">HQ:</strong> ${escapeHtml(v.hqCity)}, ${escapeHtml(v.hqState)}</span>
+                </div>
+                <div class="flex flex-wrap items-center gap-1 pt-0.5">
+                  <span class="text-[11px] font-semibold text-slate-500 mr-1">Coverage:</span>
+                  ${coveredStates.map(st => `
+                    <span class="px-2 py-0.5 rounded bg-[#0095D9]/15 text-[#0D2561] border border-[#0095D9]/30 font-bold text-[11px]">
+                      ${st}${v.statewide ? ' (Statewide)' : ''}
+                    </span>
+                  `).join('')}
+                </div>
+                ${(v.coverageCities && v.coverageCities.length > 0) ? `
+                  <p class="text-[11px] text-slate-500 leading-relaxed">
+                    <strong class="text-[#0D2561]">Cities:</strong> ${v.coverageCities.map(c => escapeHtml(c)).join(", ")}
+                  </p>
+                ` : ''}
+              </div>
+
+              <!-- Service Capabilities Pills -->
+              <div>
+                <p class="text-[11px] font-semibold text-slate-500 mb-1.5">Service Capabilities (${(v.services || []).length}):</p>
+                <div class="flex flex-wrap gap-1">
+                  ${(v.services || []).map(s => `
+                    <span class="px-2 py-0.5 rounded-md bg-[#EBF1F8] text-[#0D2561] font-medium text-[11px] border border-slate-200">
+                      ${escapeHtml(s)}
+                    </span>
+                  `).join('')}
+                </div>
+              </div>
+
+              ${v.notes ? `
+                <div class="p-2.5 rounded-lg bg-[#FBC738]/15 border border-[#FBC738]/50 text-[11px] text-[#0D2561] italic">
+                  "${escapeHtml(v.notes)}"
+                </div>
+              ` : ''}
+            </div>
+          </div>
+
+          <!-- Card Footer Action -->
+          <div class="px-5 py-3 bg-[#F4F7FB] border-t border-slate-200 flex items-center justify-between">
+            <button onclick="focusVendorOnMap('${v.id}')" class="text-xs font-bold text-[#0095D9] hover:text-[#0D2561] flex items-center gap-1.5">
+              <i class="fa-solid fa-map-pin"></i> Locate on Map & Check Drive Time
+            </button>
+            <i class="fa-solid fa-chevron-right text-[10px] text-slate-400"></i>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    function renderDirectoryTable(list) {
+      const tbody = document.getElementById("directoryTableBody");
+      tbody.innerHTML = "";
+      list.forEach(v => {
+        const isActive = v.status === "Active";
+        const coveredStates = Array.from(new Set([v.hqState, ...(v.coverageStates || [])])).filter(Boolean);
+        const tr = document.createElement("tr");
+        tr.className = "hover:bg-[#F4F7FB] transition";
+        tr.innerHTML = `
+          <td class="py-3.5 px-4 align-top">
+            <span class="inline-block px-2 py-0.5 rounded-full text-[10px] font-bold mb-1 ${isActive ? 'bg-[#0095D9]/15 text-[#0D2561]' : 'bg-[#FBC738]/30 text-[#0D2561]'}">
+              ${isActive ? 'Active Partner' : 'Lead'}
+            </span>
+            <div class="font-bold text-[#0D2561]">${escapeHtml(v.company)}</div>
+          </td>
+          <td class="py-3.5 px-4 align-top text-xs">
+            <div class="font-bold text-[#0D2561]">${escapeHtml(v.repName)}</div>
+            <div class="text-slate-500 mb-1">${escapeHtml(v.position)}</div>
+            <div class="text-[#0095D9] font-medium">${escapeHtml(v.email)}</div>
+            <div class="text-slate-600">${escapeHtml(v.phone)}</div>
+          </td>
+          <td class="py-3.5 px-4 align-top text-xs">
+            <div class="font-semibold text-[#0D2561] mb-1">HQ: ${escapeHtml(v.hqCity)}, ${escapeHtml(v.hqState)}</div>
+            <div class="flex flex-wrap gap-1">
+              ${coveredStates.map(st => `<span class="px-1.5 py-0.5 rounded bg-[#0095D9]/15 text-[#0D2561] border border-[#0095D9]/30 font-bold text-[10px]">${st}${v.statewide ? ' Statewide' : ''}</span>`).join('')}
+            </div>
+          </td>
+          <td class="py-3.5 px-4 align-top">
+            <div class="flex flex-wrap gap-1 max-w-xs">
+              ${(v.services || []).map(s => `<span class="px-2 py-0.5 rounded bg-[#EBF1F8] text-[#0D2561] text-[11px]">${escapeHtml(s)}</span>`).join('')}
+            </div>
+          </td>
+          <td class="py-3.5 px-4 align-top text-right whitespace-nowrap">
+            <button onclick="focusVendorOnMap('${v.id}')" title="View on Map" class="p-1.5 rounded-lg text-[#0095D9] hover:bg-[#0095D9]/10"><i class="fa-solid fa-map-location-dot"></i></button>
+            <button onclick="openVendorModal('${v.id}')" title="Edit" class="p-1.5 rounded-lg text-slate-500 hover:bg-slate-100"><i class="fa-solid fa-pen"></i></button>
+            <button onclick="deleteVendor('${v.id}')" title="Delete" class="p-1.5 rounded-lg text-rose-500 hover:bg-rose-50"><i class="fa-solid fa-trash"></i></button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    // 10. ADD / EDIT VENDOR MODAL LOGIC
+    function openVendorModal(editId = null) {
+      const modal = document.getElementById("vendorModal");
+      const form = document.getElementById("vendorForm");
+      form.reset();
+
+      modalTempStates = [];
+      modalTempCities = [];
+
+      // Uncheck all services
+      document.querySelectorAll('input[name="vendorServices"]').forEach(cb => cb.checked = false);
+
+      if (editId) {
+        const v = vendors.find(item => item.id === editId);
+        if (v) {
+          document.getElementById("modalTitle").textContent = "Edit Vendor Partner / Lead";
+          document.getElementById("vendorId").value = v.id;
+          document.getElementById("formStatus").value = v.status;
+          document.getElementById("formCompany").value = v.company;
+          document.getElementById("formRepName").value = v.repName;
+          document.getElementById("formPosition").value = v.position;
+          document.getElementById("formEmail").value = v.email;
+          document.getElementById("formPhone").value = v.phone;
+          document.getElementById("formStreet").value = v.street || "";
+          document.getElementById("formHqCity").value = v.hqCity;
+          document.getElementById("formHqState").value = v.hqState;
+          document.getElementById("formStatewide").checked = !!v.statewide;
+          document.getElementById("formNotes").value = v.notes || "";
+
+          modalTempStates = [...(v.coverageStates || [])];
+          modalTempCities = [...(v.coverageCities || [])];
+
+          document.querySelectorAll('input[name="vendorServices"]').forEach(cb => {
+            if ((v.services || []).includes(cb.value)) cb.checked = true;
+          });
+        }
+      } else {
+        document.getElementById("modalTitle").textContent = "Add New Vendor Partner / Lead";
+        document.getElementById("vendorId").value = "";
+        document.getElementById("formHqState").value = "FL";
+        document.getElementById("coverageStatePicker").value = "FL";
+      }
+
+      renderModalCoverageTags();
+      updateSelectedServiceCounter();
+      modal.classList.remove("hidden");
+    }
+
+    function closeVendorModal() {
+      document.getElementById("vendorModal").classList.add("hidden");
+    }
+
+    function addCoverageStateTag() {
+      const picker = document.getElementById("coverageStatePicker");
+      const code = picker.value;
+      if (code && !modalTempStates.includes(code)) {
+        modalTempStates.push(code);
+        renderModalCoverageTags();
+      }
+    }
+
+    function removeCoverageStateTag(code) {
+      modalTempStates = modalTempStates.filter(s => s !== code);
+      renderModalCoverageTags();
+    }
+
+    function addCoverageCityTag() {
+      const input = document.getElementById("coverageCityInput");
+      const val = input.value.trim();
+      if (val && !modalTempCities.includes(val)) {
+        modalTempCities.push(val);
+        input.value = "";
+        renderModalCoverageTags();
+      }
+    }
+
+    function removeCoverageCityTag(cityStr) {
+      modalTempCities = modalTempCities.filter(c => c !== cityStr);
+      renderModalCoverageTags();
+    }
+
+    function renderModalCoverageTags() {
+      const container = document.getElementById("selectedCoverageTags");
+      container.innerHTML = "";
+
+      modalTempStates.forEach(st => {
+        const span = document.createElement("span");
+        span.className = "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#0095D9] text-white text-xs font-bold";
+        span.innerHTML = `<span>State: ${st}</span><button type="button" onclick="removeCoverageStateTag('${st}')" class="hover:text-[#FBC738]">&times;</button>`;
+        container.appendChild(span);
+      });
+
+      modalTempCities.forEach(c => {
+        const span = document.createElement("span");
+        span.className = "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#0D2561] text-white text-xs font-medium";
+        span.innerHTML = `<span>City: ${escapeHtml(c)}</span><button type="button" onclick="removeCoverageCityTag('${escapeHtml(c)}')" class="hover:text-[#FBC738]">&times;</button>`;
+        container.appendChild(span);
+      });
+    }
+
+    function updateSelectedServiceCounter() {
+      const checked = document.querySelectorAll('input[name="vendorServices"]:checked').length;
+      document.getElementById("selectedServiceCount").textContent = `${checked} selected`;
+    }
+
+    async function saveVendorForm(event) {
+      event.preventDefault();
+
+      const checkedServices = Array.from(document.querySelectorAll('input[name="vendorServices"]:checked')).map(cb => cb.value);
+      if (checkedServices.length === 0) {
+        showToast("Please select at least one service capability.", "warning");
+        return;
+      }
+
+      const id = document.getElementById("vendorId").value;
+      const hqCity = document.getElementById("formHqCity").value.trim();
+      const hqState = document.getElementById("formHqState").value;
+      const street = document.getElementById("formStreet").value.trim();
+
+      // Ensure HQ state is included in coverageStates if empty
+      const finalStates = Array.from(new Set([hqState, ...modalTempStates]));
+
+      // Resolve Coordinates for the HQ location
+      const coords = await resolveLocationCoords(`${street} ${hqCity}, ${hqState}`, hqCity, hqState);
+
+      const vendorObj = {
+        id: id || "v-" + Date.now(),
+        status: document.getElementById("formStatus").value,
+        company: document.getElementById("formCompany").value.trim(),
+        repName: document.getElementById("formRepName").value.trim(),
+        position: document.getElementById("formPosition").value,
+        email: document.getElementById("formEmail").value.trim(),
+        phone: document.getElementById("formPhone").value.trim(),
+        street,
+        hqCity,
+        hqState,
+        lat: coords.lat,
+        lng: coords.lng,
+        coverageStates: finalStates,
+        statewide: document.getElementById("formStatewide").checked,
+        coverageCities: modalTempCities,
+        services: checkedServices,
+        notes: document.getElementById("formNotes").value.trim()
+      };
+
+      if (id) {
+        const idx = vendors.findIndex(v => v.id === id);
+        if (idx !== -1) vendors[idx] = vendorObj;
+        showToast(`Updated ${vendorObj.company}!`);
+      } else {
+        vendors.push(vendorObj);
+        showToast(`Added ${vendorObj.company} to our tracker!`);
+      }
+
+      saveVendorsToStorage();
+      closeVendorModal();
+      renderAllViews();
+    }
+
+    function promoteLeadToActive(id) {
+      const idx = vendors.findIndex(v => v.id === id);
+      if (idx !== -1) {
+        vendors[idx].status = "Active";
+        saveVendorsToStorage();
+        renderAllViews();
+        showToast(`${vendors[idx].company} promoted to Active Partner!`);
+      }
+    }
+
+    function deleteVendor(id) {
+      const target = vendors.find(v => v.id === id);
+      if (!target) return;
+      vendors = vendors.filter(v => v.id !== id);
+      saveVendorsToStorage();
+      renderAllViews();
+      showToast(`Removed ${target.company} from directory.`);
+    }
+
+    // 11. PAGE 3: INTERACTIVE LEAFLET MAP & CLIENT SITE DRIVE-TIME CALCULATOR
+    function getTileLayerForTheme(theme) {
+      if (theme === "esri") {
+        // Esri World Street Map (Referer-safe ArcGIS CDN)
+        return L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}", {
+          attribution: "Tiles &copy; Esri &mdash; Source: Esri, DeLorme, NAVTEQ, USGS",
+          maxZoom: 18
+        });
+      }
+      // Primary: CartoDB Positron (Clean light canvas, works seamlessly in sandboxed iframes without Referer blocks)
+      return L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png", {
+        attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
+        subdomains: "abcd",
+        maxZoom: 19
+      });
+    }
+
+    function initLeafletMap() {
+      if (mapInstance) return;
+      mapInstance = L.map("vendorMap").setView([38.5, -96.0], 4);
+
+      baseTileLayer = getTileLayerForTheme(currentMapTheme);
+      baseTileLayer.on("tileerror", function () {
+        // Automatic fallback to Esri World Street Map if primary CDN has any issue
+        if (currentMapTheme !== "esri") {
+          currentMapTheme = "esri";
+          mapInstance.removeLayer(baseTileLayer);
+          baseTileLayer = getTileLayerForTheme("esri").addTo(mapInstance);
+        }
+      });
+      baseTileLayer.addTo(mapInstance);
+
+      vendorMarkersLayer = L.layerGroup().addTo(mapInstance);
+      clientMarkerLayer = L.layerGroup().addTo(mapInstance);
+      routeLinesLayer = L.layerGroup().addTo(mapInstance);
+
+      refreshMapAndRankings();
+    }
+
+    function toggleMapBaseLayer() {
+      if (!mapInstance) return;
+      currentMapTheme = currentMapTheme === "positron" ? "esri" : "positron";
+      if (baseTileLayer) {
+        mapInstance.removeLayer(baseTileLayer);
+      }
+      baseTileLayer = getTileLayerForTheme(currentMapTheme).addTo(mapInstance);
+      const btn = document.getElementById("btnSwitchMapStyle");
+      if (btn) {
+        btn.innerHTML = currentMapTheme === "positron"
+          ? `<i class="fa-solid fa-layer-group text-[#0095D9] mr-1"></i> Street View`
+          : `<i class="fa-solid fa-layer-group text-[#0095D9] mr-1"></i> Clean View`;
+      }
+    }
+
+    function getFilteredMapVendors() {
+      const service = document.getElementById("mapFilterService").value;
+      const state = document.getElementById("mapFilterState").value;
+      const status = document.getElementById("mapFilterStatus").value;
+
+      return vendors.filter(v => {
+        if (status !== "ALL" && v.status !== status) return false;
+        if (service !== "ALL" && !(v.services || []).includes(service)) return false;
+        if (state !== "ALL") {
+          const matchesState = v.hqState === state || (v.coverageStates || []).includes(state);
+          if (!matchesState) return false;
+        }
+        return true;
+      });
+    }
+
+    function refreshMapAndRankings() {
+      if (!mapInstance) return;
+
+      vendorMarkersLayer.clearLayers();
+      routeLinesLayer.clearLayers();
+
+      let filtered = getFilteredMapVendors();
+      document.getElementById("mapFilteredCount").textContent = filtered.length;
+
+      // Calculate driving distance & hours if a client site is active
+      if (currentClientSite) {
+        filtered = filtered.map(v => {
+          const distInfo = estimateDriveMetrics(v.lat, v.lng, currentClientSite.lat, currentClientSite.lng);
+          const coversClientState = currentClientSite.stateCode && (v.hqState === currentClientSite.stateCode || (v.coverageStates || []).includes(currentClientSite.stateCode));
+          return { ...v, distInfo, coversClientState };
+        }).sort((a, b) => a.distInfo.drivingMiles - b.distInfo.drivingMiles);
+
+        document.getElementById("mapSidebarTitle").textContent = "Nearest Vendors by Driving Time";
+        document.getElementById("mapSidebarSubtitle").textContent = `Ranked from closest HQ to ${currentClientSite.label}`;
+      } else {
+        document.getElementById("mapSidebarTitle").textContent = "Vendor Locations & Coverage";
+        document.getElementById("mapSidebarSubtitle").textContent = "Enter a client facility address above to measure drive time.";
+      }
+
+      // Plot Vendor Pins
+      filtered.forEach((v, idx) => {
+        const isActive = v.status === "Active";
+        const pinColor = isActive ? "#0095D9" : "#FBC738";
+        const textColor = isActive ? "#ffffff" : "#0D2561";
+        const iconHtml = `
+          <div class="custom-pin" style="background-color: ${pinColor}; color: ${textColor}; width: 32px; height: 32px; font-size: 12px;">
+            ${currentClientSite ? `#${idx + 1}` : `<i class="fa-solid fa-building"></i>`}
+          </div>
+        `;
+        const markerIcon = L.divIcon({
+          html: iconHtml,
+          className: "",
+          iconSize: [32, 32],
+          iconAnchor: [16, 16]
+        });
+
+        const drivePopupLine = v.distInfo
+          ? `<div style="margin-top:6px; padding:4px 8px; background:#EBF1F8; border:1px solid #0095D9; border-radius:6px; color:#0D2561; font-weight:bold;">
+               🚗 Est. Drive: ${v.distInfo.durationText} (${v.distInfo.drivingMiles} mi)
+             </div>`
+          : "";
+
+        const popupHtml = `
+          <div style="min-width:210px; font-family:Inter,sans-serif;">
+            <span style="font-size:10px; font-weight:800; text-transform:uppercase; color:${isActive ? '#0095D9' : '#b45309'};">
+              ${isActive ? 'Active Partner' : 'Lead / Vetting'}
+            </span>
+            <h4 style="font-weight:800; font-size:14px; margin:2px 0; color:#0D2561;">${escapeHtml(v.company)}</h4>
+            <p style="font-size:12px; color:#475569; margin:0;">
+              <strong>HQ:</strong> ${escapeHtml(v.hqCity)}, ${escapeHtml(v.hqState)}
+            </p>
+            <p style="font-size:12px; color:#475569; margin:2px 0;">
+              <strong>Rep:</strong> ${escapeHtml(v.repName)} (${escapeHtml(v.phone)})
+            </p>
+            ${drivePopupLine}
+          </div>
+        `;
+
+        const marker = L.marker([v.lat, v.lng], { icon: markerIcon }).bindPopup(popupHtml);
+        vendorMarkersLayer.addLayer(marker);
+
+        // Draw connecting dashed line from Client Site to top 5 closest vendors
+        if (currentClientSite && idx < 5) {
+          const lineColor = idx === 0 ? "#0095D9" : "#0D2561";
+          const line = L.polyline(
+            [[currentClientSite.lat, currentClientSite.lng], [v.lat, v.lng]],
+            { color: lineColor, weight: idx === 0 ? 3.5 : 2, dashArray: "6, 6", opacity: idx === 0 ? 0.95 : 0.45 }
+          );
+          routeLinesLayer.addLayer(line);
+        }
+      });
+
+      renderMapSidebarList(filtered);
+    }
+
+    function renderMapSidebarList(list) {
+      const container = document.getElementById("mapProximityList");
+      container.innerHTML = "";
+
+      if (list.length === 0) {
+        container.innerHTML = `<div class="p-6 text-center text-xs text-slate-400">No vendors match your current map filters.</div>`;
+        return;
+      }
+
+      list.forEach((v, idx) => {
+        const isActive = v.status === "Active";
+        const coveredStates = Array.from(new Set([v.hqState, ...(v.coverageStates || [])])).filter(Boolean);
+        const card = document.createElement("div");
+        card.className = "p-3.5 rounded-xl border border-slate-200 hover:border-[#0095D9] bg-[#F4F7FB] hover:bg-white transition space-y-2";
+
+        const googleMapsDirUrl = currentClientSite
+          ? `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(v.hqCity + ', ' + v.hqState)}&destination=${encodeURIComponent(currentClientSite.label)}`
+          : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(v.hqCity + ', ' + v.hqState)}`;
+
+        card.innerHTML = `
+          <div class="flex items-start justify-between gap-2">
+            <div>
+              <div class="flex items-center gap-1.5">
+                ${currentClientSite ? `<span class="px-2 py-0.5 rounded bg-[#0D2561] text-[#FBC738] text-[10px] font-bold">#${idx + 1}</span>` : ''}
+                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${isActive ? 'bg-[#0095D9]/15 text-[#0D2561]' : 'bg-[#FBC738]/30 text-[#0D2561]'}">
+                  ${isActive ? 'Active' : 'Lead'}
+                </span>
+                ${v.coversClientState ? `<span class="px-2 py-0.5 rounded-full bg-[#0095D9] text-white text-[10px] font-bold"><i class="fa-solid fa-check"></i> Covers State</span>` : ''}
+              </div>
+              <h4 class="font-display font-extrabold text-sm text-[#0D2561] mt-1">${escapeHtml(v.company)}</h4>
+              <p class="text-xs text-slate-500">HQ: ${escapeHtml(v.hqCity)}, ${escapeHtml(v.hqState)} &bull; Covers: ${coveredStates.join(", ")}${v.statewide ? ' (Statewide)' : ''}</p>
+            </div>
+            <button onclick="panToVendor(${v.lat}, ${v.lng})" class="px-2 py-1 rounded-lg bg-white hover:bg-[#0D2561] hover:text-white text-[#0D2561] border border-slate-200 text-[11px] font-bold shrink-0 transition">
+              Zoom
+            </button>
+          </div>
+
+          ${v.distInfo ? `
+            <div class="p-2.5 rounded-lg bg-[#0095D9]/10 border border-[#0095D9]/30 flex items-center justify-between">
+              <div>
+                <div class="text-[11px] font-bold text-[#0095D9]">Estimated Drive to Client Site</div>
+                <div class="text-sm font-display font-extrabold text-[#0D2561]">
+                  <i class="fa-solid fa-car-side text-[#0095D9] mr-1"></i> ${v.distInfo.durationText} <span class="text-xs font-normal text-slate-600">(${v.distInfo.drivingMiles} miles)</span>
+                </div>
+              </div>
+              <a href="${googleMapsDirUrl}" target="_blank" rel="noopener noreferrer" class="px-2.5 py-1.5 rounded-lg bg-[#0D2561] hover:bg-[#0095D9] text-white text-[11px] font-bold transition flex items-center gap-1">
+                <span>Route</span> <i class="fa-solid fa-arrow-up-right-from-square text-[9px]"></i>
+              </a>
+            </div>
+          ` : ''}
+
+          <div class="flex flex-wrap items-center justify-between gap-2 pt-1 text-[11px] text-slate-600">
+            <span><strong class="text-[#0D2561]">${escapeHtml(v.repName)}</strong> (${escapeHtml(v.phone)})</span>
+            <button onclick="copyDispatchSummary('${v.id}')" class="text-[#0095D9] hover:underline font-bold flex items-center gap-1">
+              <i class="fa-regular fa-clipboard"></i> Copy Dispatch Info
+            </button>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    async function calculateClientSiteDistances() {
+      const input = document.getElementById("clientSiteInput").value.trim();
+      if (!input) {
+        showToast("Enter a client facility city, state, or address first.", "warning");
+        return;
+      }
+
+      const btn = document.getElementById("btnLocateClient");
+      btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Locating...`;
+      btn.disabled = true;
+
+      try {
+        const resolved = await resolveLocationCoords(input);
+        placeClientPin(input, resolved.lat, resolved.lng, resolved.stateCode || extractStateFromText(input));
+      } finally {
+        btn.innerHTML = `<i class="fa-solid fa-route"></i> Compare`;
+        btn.disabled = false;
+      }
+    }
+
+    function setQuickClientSite(label, lat, lng, stateCode) {
+      document.getElementById("clientSiteInput").value = label;
+      placeClientPin(label, lat, lng, stateCode);
+    }
+
+    function placeClientPin(label, lat, lng, stateCode) {
+      currentClientSite = { label, lat, lng, stateCode };
+      clientMarkerLayer.clearLayers();
+
+      const starIcon = L.divIcon({
+        html: `<div class="custom-pin" style="background-color:#e11d48; width:36px; height:36px; font-size:15px;"><i class="fa-solid fa-star"></i></div>`,
+        className: "",
+        iconSize: [36, 36],
+        iconAnchor: [18, 18]
+      });
+
+      const marker = L.marker([lat, lng], { icon: starIcon })
+        .bindPopup(`<div style="font-family:Inter,sans-serif;"><strong style="color:#e11d48;">CLIENT FACILITY SITE</strong><br/>${escapeHtml(label)}</div>`)
+        .openPopup();
+      clientMarkerLayer.addLayer(marker);
+
+      document.getElementById("activeClientSiteBanner").classList.remove("hidden");
+      document.getElementById("activeClientSiteLabel").textContent = label;
+
+      refreshMapAndRankings();
+      mapInstance.setView([lat, lng], 6);
+      showToast(`Calculated driving times to ${label}!`);
+    }
+
+    function clearClientSite() {
+      currentClientSite = null;
+      clientMarkerLayer.clearLayers();
+      routeLinesLayer.clearLayers();
+      document.getElementById("clientSiteInput").value = "";
+      document.getElementById("activeClientSiteBanner").classList.add("hidden");
+      refreshMapAndRankings();
+      fitMapToPins();
+    }
+
+    function focusVendorOnMap(vendorId) {
+      const v = vendors.find(item => item.id === vendorId);
+      if (!v) return;
+      switchPage("map");
+      setTimeout(() => {
+        if (mapInstance) {
+          mapInstance.setView([v.lat, v.lng], 8);
+        }
+      }, 200);
+    }
+
+    function panToVendor(lat, lng) {
+      if (mapInstance) {
+        mapInstance.setView([lat, lng], 9);
+      }
+    }
+
+    function fitMapToPins() {
+      if (!mapInstance) return;
+      const points = vendors.map(v => [v.lat, v.lng]);
+      if (currentClientSite) points.push([currentClientSite.lat, currentClientSite.lng]);
+      if (points.length > 0) {
+        const bounds = L.latLngBounds(points);
+        mapInstance.fitBounds(bounds, { padding: [40, 40], maxZoom: 6 });
+      } else {
+        mapInstance.setView([38.5, -96.0], 4);
+      }
+    }
+
+    // 12. HAVERSINE + REALISTIC HIGHWAY DRIVING TIME CALCULATOR
+    function estimateDriveMetrics(lat1, lng1, lat2, lng2) {
+      const R = 3958.8; // Earth radius in miles
+      const dLat = (lat2 - lat1) * Math.PI / 180;
+      const dLng = (lng2 - lng1) * Math.PI / 180;
+      const a =
+        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+        Math.sin(dLng / 2) * Math.sin(dLng / 2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+      const straightMiles = R * c;
+
+      // Apply 1.22x road routing curvature factor and ~56 mph average commercial highway speed
+      const drivingMiles = Math.max(1, Math.round(straightMiles * 1.22));
+      const totalMinutes = Math.max(8, Math.round((drivingMiles / 56) * 60));
+      const hrs = Math.floor(totalMinutes / 60);
+      const mins = totalMinutes % 60;
+
+      const durationText = hrs > 0 ? `${hrs} hr${hrs > 1 ? 's' : ''} ${mins} mins` : `${mins} mins`;
+      return { drivingMiles, totalMinutes, durationText };
+    }
+    // 13. GEOCODING RESOLVER (ArcGIS World Geocoding REST API + Instant US City & State Fallback)
+    async function resolveLocationCoords(queryText, fallbackCity = "", fallbackState = "") {
+      const clean = queryText.toLowerCase();
+
+      // 1. Check built-in major cities dictionary first for instant speed
+      for (const [cityKey, data] of Object.entries(CITY_COORDS)) {
+        if (clean.includes(cityKey)) {
+          // Add tiny deterministic jitter if multiple vendors share a city so pins don't overlap identically
+          const jitterLat = (Math.random() - 0.5) * 0.03;
+          const jitterLng = (Math.random() - 0.5) * 0.03;
+          return { lat: data.lat + jitterLat, lng: data.lng + jitterLng, stateCode: data.state };
+        }
+      }
+
+      // 2. Try ArcGIS World Geocoding REST API (Referer-safe in browser/iframe environments)
+      try {
+        const url = `https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/findAddressCandidates?SingleLine=${encodeURIComponent(queryText)}&countryCode=USA&maxLocations=1&f=pjson`;
+        const resp = await fetch(url);
+        if (resp.ok) {
+          const data = await resp.json();
+          if (data && data.candidates && data.candidates.length > 0) {
+            const loc = data.candidates[0].location;
+            return {
+              lat: parseFloat(loc.y),
+              lng: parseFloat(loc.x),
+              stateCode: extractStateFromText(queryText)
+            };
+          }
+        }
+      } catch (e) {
+        // Fallback silently below
+      }
+
+      // 3. State centroid fallback
+      const stCode = fallbackState || extractStateFromText(queryText) || "FL";
+      const stObj = US_STATES.find(s => s.code === stCode) || US_STATES[8];
+      return {
+        lat: stObj.lat + (Math.random() - 0.5) * 0.4,
+        lng: stObj.lng + (Math.random() - 0.5) * 0.4,
+        stateCode: stObj.code
+      };
+    }
+
+    function extractStateFromText(text) {
+      const upper = text.toUpperCase();
+      for (const st of US_STATES) {
+        const regex = new RegExp(`\\b${st.code}\\b`);
+        if (regex.test(upper) || upper.includes(st.name.toUpperCase())) {
+          return st.code;
+        }
+      }
+      return "";
+    }
+
+    // 14. AUTOMATIONS: COPY DISPATCH SUMMARY, CSV EXPORT, JSON BACKUP/RESTORE
+    function copyDispatchSummary(vendorId) {
+      const v = vendors.find(item => item.id === vendorId);
+      if (!v) return;
+      let summary = `AGILE FACILITY SOLUTIONS - VENDOR DISPATCH SUMMARY\n` +
+        `Company: ${v.company} (${v.status})\n` +
+        `Contact: ${v.repName} (${v.position})\n` +
+        `Phone: ${v.phone} | Email: ${v.email}\n` +
+        `HQ: ${v.hqCity}, ${v.hqState} | Coverage: ${v.coverageStates.join(", ")}${v.statewide ? ' (Statewide)' : ''}\n` +
+        `Services: ${v.services.join(", ")}`;
+
+      if (currentClientSite) {
+        const dist = estimateDriveMetrics(v.lat, v.lng, currentClientSite.lat, currentClientSite.lng);
+        summary += `\nEst. Drive to ${currentClientSite.label}: ${dist.durationText} (${dist.drivingMiles} miles)`;
+      }
+
+      copyText(summary, "Dispatch summary copied to clipboard!");
+    }
+
+    function copyText(text, successMsg) {
+      navigator.clipboard.writeText(text).then(() => {
+        showToast(successMsg);
+      }).catch(() => {
+        showToast("Copied to clipboard!");
+      });
+    }
+
+    function exportFilteredCSV() {
+      const list = getFilteredDirectoryVendors();
+      if (list.length === 0) {
+        showToast("No vendors to export.", "warning");
+        return;
+      }
+
+      const headers = ["Status", "Company Name", "Representative", "Position", "Email", "Phone", "HQ City", "HQ State", "Coverage States", "Statewide", "Coverage Cities", "Service Capabilities", "Notes"];
+      const rows = list.map(v => [
+        v.status,
+        v.company,
+        v.repName,
+        v.position,
+        v.email,
+        v.phone,
+        v.hqCity,
+        v.hqState,
+        (v.coverageStates || []).join("; "),
+        v.statewide ? "Yes" : "No",
+        (v.coverageCities || []).join("; "),
+        (v.services || []).join("; "),
+        v.notes || ""
+      ].map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(","));
+
+      const csvContent = [headers.join(","), ...rows].join("\n");
+      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `Agile_Facility_Vendors_${new Date().toISOString().slice(0, 10)}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+      showToast(`Exported ${list.length} vendors to CSV!`);
+    }
+
+    function exportDataJSON() {
+      const blob = new Blob([JSON.stringify(vendors, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `Agile_Facility_Vendors_Backup_${new Date().toISOString().slice(0, 10)}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+      showToast("Downloaded full JSON backup!");
+    }
+
+    function importDataJSON(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        try {
+          const imported = JSON.parse(e.target.result);
+          if (Array.isArray(imported)) {
+            vendors = imported;
+            saveVendorsToStorage();
+            renderAllViews();
+            showToast(`Restored ${vendors.length} vendors from backup!`);
+          } else {
+            showToast("Invalid backup file format.", "warning");
+          }
+        } catch (err) {
+          showToast("Could not parse JSON file.", "warning");
+        }
+      };
+      reader.readAsText(file);
+      event.target.value = "";
+    }
+
+    // 15. UTILITIES
+    function showToast(msg, type = "success") {
+      const toast = document.getElementById("toastNotification");
+      const icon = document.getElementById("toastIcon");
+      const text = document.getElementById("toastMessage");
+
+      text.textContent = msg;
+      icon.className = type === "warning"
+        ? "fa-solid fa-triangle-exclamation text-amber-400"
+        : "fa-solid fa-circle-check text-teal-400";
+
+      toast.classList.remove("hidden");
+      clearTimeout(window._toastTimer);
+      window._toastTimer = setTimeout(() => {
+        toast.classList.add("hidden");
+      }, 3200);
+    }
+
+    function escapeHtml(str) {
+      if (!str) return "";
+      return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+  </script>
+</body>
+</html>
